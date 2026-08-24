@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Shortlist{% endblock %}
+{% block content %}
+<h2>Shortlist</h2>
+
+{#
+  Export options — all three backend formats. Exports stay anonymized: the
+  proxy defaults to the blind path and there is deliberately NO de-anonymizing
+  control/hidden field/query param anywhere on this page.
+#}
+{% set export_base = url_for('shortlist_export', job_id=job_id) %}
+<div class="filter-row">
+  <a class="btn btn-secondary btn-sm"
+     href="{{ export_base }}?format=csv">Export CSV</a>
+  <a class="btn btn-secondary btn-sm"
+     href="{{ export_base }}?format=evidence-csv">Export evidence CSV</a>
+  <a class="btn btn-secondary btn-sm"
+     href="{{ export_base }}?format=json">Export JSON</a>
+</div>
+
+{# Gate Generate until ≥1 résumé is parsed — otherwise ranking yields an empty
+   shortlist and an endless "Generating…" poll. `any_resume_parsed` defaults to
+   true so an unknown context never wrongly disables the button. #}
+{% set can_generate = any_resume_parsed|default(true) %}
+{% if is_writer %}
+<button class="btn btn-primary"
+        {% if can_generate %}
+        hx-post="{{ url_for('generate_shortlist', job_id=job_id) }}"
+        hx-target="#shortlist-cards" hx-swap="outerHTML"
+        hx-indicator="#shortlist-spinner"
+        {% else %}disabled title="Upload résumés and wait for them to parse first"{% endif %}>
+  {{ 'Regenerate shortlist' if entries else 'Generate shortlist' }}
+  <span id="shortlist-spinner" class="htmx-indicator spinner">working…</span>
+</button>
+{% if not can_generate %}
+<p class="hint">No parsed résumés yet — upload résumés and wait for them to show
+  <strong>parsed</strong> before generating a shortlist.</p>
+{% endif %}
+{% endif %}
+{% include "shortlist_cards.html" %}
+{% endblock %}

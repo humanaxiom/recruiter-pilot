@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Matching jobs{% endblock %}
+{% block content %}
+<h2>Matching jobs</h2>
+{#
+  The candidate→jobs direction of the many-to-many view. NO redaction here
+  (ADR-012 §4): jobs are not personal data, so real titles are shown — this is
+  correct, unlike the blind shortlist which hides candidate identity.
+#}
+<p class="hint">Open jobs this candidate ranks against, best match first. Click a
+  job to open its detail page.</p>
+{% include "match_results_cards.html" %}
+{% endblock %}

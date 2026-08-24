@@ -1,0 +1,33 @@
+# CAS override — enables the real SFU CAS login flow (ADR-019 / FU-5).
+#
+#   docker compose -f docker-compose.yml -f compose.cas.yml up -d api frontend
+#
+# Without this override the stack runs cas_enabled=False (dev-anonymous admin —
+# no login screen). This turns CAS ON for both the API (which owns the CAS
+# ticket dance + session store) and the Flask frontend (whose before_request
+# gate redirects an unauthenticated browser to the API's /auth/cas/login).
+#
+# CAS_SERVICE_BASE_URL is the API's BROWSER-REACHABLE base URL — the login
+# `service` and the /auth/cas/validate callback are built from it, and it must
+# be byte-identical on the login and validate legs. localhost:8000 works when
+# the browser is on this machine. Change it to the deployment's public URL in
+# a real deploy. DEFAULT_ADMIN_CAS_USERNAME already defaults to "asalah"
+# (ADR-019 §10a) — first login by that CAS id lands as admin.
+services:
+  api:
+    environment:
+      CAS_ENABLED: "true"
+      CAS_SERVER_URL: "https://cas.sfu.ca/cas"
+      # Browser-reachable API base — derived from API_PORT so it stays in sync
+      # with the (unique) published host port. Must be byte-identical on the
+      # login `service` and the /auth/cas/validate callback.
+      CAS_SERVICE_BASE_URL: "http://localhost:${API_PORT:-8000}"
+      # After a successful CAS validate, land the browser back on the FRONTEND
+      # origin, not the API — they are split origins in dev.
+      CAS_FRONTEND_BASE_URL: "http://localhost:${FRONTEND_PORT:-5000}"
+  frontend:
+    environment:
+      API_BASE_URL: http://api:8000
+      FLASK_SECRET_KEY: dev-only-change-me
+      CAS_ENABLED: "true"
+      CAS_SERVICE_BASE_URL: "http://localhost:${API_PORT:-8000}"

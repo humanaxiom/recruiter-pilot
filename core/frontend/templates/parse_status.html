@@ -1,0 +1,37 @@
+{#
+  HTMX poll fragment. Rendered both inline (in job_detail.html) and standalone
+  (by the GET /jobs/<id>/parse-status route).
+
+  TRI-STATE, and the middle one is why this comment is longer than it was:
+  parsed / failed / in-flight. It used to be a two-state derived from
+  `parsed_at` alone, which meant a FAILED job was indistinguishable from an
+  in-flight one and — worse — kept its `hx-trigger` forever, re-polling a row
+  that would never change every three seconds for as long as the tab stayed
+  open. On 2026-08-21 twenty JDs sat in exactly that state for a day.
+
+  So the trigger is kept ONLY while a parse is genuinely in flight: not parsed
+  AND not failed. `failure_reason` is what separates the two, and it has been
+  on `JobOut` and arriving here unused the whole time.
+#}
+<div id="parse-status"
+  {%- if job.parsed_at is none and not job.failure_reason %}
+     hx-get="{{ url_for('parse_status', job_id=job.id) }}"
+     hx-trigger="every 3s"
+     hx-swap="outerHTML"
+  {%- endif %}>
+  {% if job.parsed_at is none and job.failure_reason %}
+  <p class="error">Parse failed: {{ job.failure_reason }}</p>
+  {% elif job.parsed_at is none %}
+  <span class="badge-parsing">parsing…</span>
+  {% else %}
+  <div class="skills">
+    {% if job.description_parsed and job.description_parsed.required_skills %}
+    {% for skill in job.description_parsed.required_skills %}
+    <span class="pill pill-skill">{{ skill.name }}</span>
+    {% endfor %}
+    {% else %}
+    <span class="muted">No required skills parsed.</span>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

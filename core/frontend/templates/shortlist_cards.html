@@ -1,0 +1,227 @@
+{#
+  HTMX poll fragment. Rendered both inline (in shortlist_list.html) and
+  standalone (by the GET /jobs/<id>/shortlist-cards route, and returned by the
+  POST /jobs/<id>/shortlist generate route). While the (blind) shortlist read is
+  still empty it renders "Generating…" AND keeps its `hx-trigger` so the browser
+  re-polls every 3s; once ranked entries exist it renders the cards WITHOUT the
+  trigger, so polling stops.
+
+  Blind-boundary: every card surfaces `entry.display_label` ("Candidate A") —
+  NEVER a real candidate name/email/phone. No other candidate field is read.
+#}
+{% set a = attempt|default(0) %}
+{% set m = max_attempts|default(400) %}
+{# FU-7 §2 (ADR-021 §2 / ADR-029): the fail-closed ranking state. When ranking
+   failed closed a retry is queued server-side, so we keep polling but show a
+   DISTINCT "waiting for AI" message. Defaults to "no state" for callers that
+   don't pass it (e.g. the shortlist list page). #}
+{% set _status = shortlist_status|default(none) %}
+{% set awaiting_llm = _status is not none and _status.get('state') == 'awaiting_llm' %}
+{# fix/regenerate-shortlist-no-feedback: a run genuinely in flight, recorded
+   server-side by the API route BEFORE it even enqueues (jobs.shortlist_state
+   = 'ranking') and cleared/overwritten by the worker on every terminal path
+   — a RECORDED FACT, not an inference from "entries are empty". That
+   inference is exactly what broke Regenerate: entries already exist while a
+   new run grinds on for minutes, so `not entries` alone can no longer decide
+   whether to keep polling. #}
+{% set ranking = _status is not none and _status.get('state') == 'ranking' %}
+{# fix/regenerate-shortlist-no-feedback — awaiting_llm sibling of the
+   `ranking` fix above: a Regenerate whose LLM call fails closed calls
+   `set_shortlist_awaiting_llm` and returns WITHOUT ever reaching
+   `persist_shortlist`, so the PREVIOUS run's entries are still on the row
+   while a server-side retry is queued (ADR-029's arq.Retry mechanism, below
+   the retry ceiling). `ranking` and `awaiting_llm` answer two DIFFERENT
+   questions — "is a run in flight right now" vs. "did a run just fail
+   closed, with a retry already queued" — and must both keep polling, so
+   both belong in this OR. Do not collapse them into one flag: each drives a
+   distinctly-worded banner below, and merging them would silently pick the
+   wrong message for whichever state actually applies. #}
+{% set polling = (a < m) and ((not entries) or ranking or awaiting_llm) %}
+<div id="shortlist-cards"
+  {%- if polling %}
+     hx-get="{{ url_for('shortlist_cards', job_id=job_id) }}?attempt={{ a + 1 }}"
+     hx-trigger="every 3s"
+     hx-swap="outerHTML"
+  {%- endif %}>
+  {% if entries and ranking and polling %}
+  <p class="muted">
+    <span class="htmx-indicator spinner">polling…</span>
+    The candidates below are from the <strong>previous run</strong> — a new
+    run is <strong>in progress</strong> and will replace this list
+    automatically when it finishes. The local model runs on every candidate
+    résumé the run considers, so a full pass realistically takes several
+    minutes and scales with the number of résumés involved.
+  </p>
+  {% elif entries and ranking %}
+  {# F3 (minor, review findings 2026-08-18): the poll ceiling (`a >= m`) was
+     already reached, so the wrapping div's own hx-trigger is correctly gone
+     — but a run genuinely was still in flight last we checked. Stop faking
+     progress: no spinner, no "automatically" promise nothing is left to
+     keep. Give an honest, actionable give-up message instead. #}
+  <p class="muted">
+    The candidates below are from the <strong>previous run</strong>. A new
+    run did not finish in the time this page was willing to keep checking —
+    check back later, or click <strong>Regenerate</strong> to try again.
+  </p>
+  {% elif entries and awaiting_llm and polling %}
+  {# entries present + a failed-closed retry queued (not a run in flight —
+     that's the `ranking` branch above): still show the stale cards below,
+     but explain a retry MAY be queued rather than silently falling through
+     to the bare-cards branch, which would leave no sign anything is
+     happening. F4 (review findings 2026-08-18): worded as a possibility, not
+     an unconditional fact — see the module-level note below the `awaiting_llm`
+     branches for why the frontend cannot tell "a retry is queued" from "the
+     retry ceiling was already hit" apart from this payload alone. #}
+  <p class="muted">
+    <span class="htmx-indicator spinner">polling…</span>
+    Waiting for AI to rank candidates… the ranking model was briefly
+    unavailable. A retry may be queued automatically and will replace the
+    list below if it finishes — if nothing changes after a while, click
+    <strong>Regenerate</strong> to try again. The candidates below are from
+    the <strong>previous run</strong>.
+  </p>
+  {% elif entries and awaiting_llm %}
+  {# F3/F4 sibling of the branch above, once the poll ceiling has been
+     reached: no spinner, no automatic-replacement promise, and an explicit
+     manual fallback since a retry is no longer being awaited by this page. #}
+  <p class="muted">
+    Waiting for AI to rank candidates did not finish in the time this page
+    was willing to keep checking. The candidates below are from the
+    <strong>previous run</strong> — click <strong>Regenerate</strong> to try
+    again.
+  </p>
+  {% elif entries %}{# fall through to the cards below #}
+  {% elif polling and awaiting_llm %}
+  <p class="muted">
+    <span class="htmx-indicator spinner">polling…</span>
+    Waiting for AI to rank candidates… the ranking model was briefly
+    unavailable, so this run is queued to retry automatically. It will pick up
+    again on its own — no action needed.
+    <br>
+    <span class="elapsed">~{{ a * 3 }}s elapsed</span>
+  </p>
+  {% elif polling %}
+  <p class="muted">
+    <span class="htmx-indicator spinner">polling…</span>
+    Generating… ranked candidates will appear here. The local model runs on
+    every candidate résumé the run considers, so a full pass realistically
+    takes several minutes and scales with the number of résumés involved.
+    <br>
+    <span class="elapsed">~{{ a * 3 }}s elapsed</span>
+  </p>
+  {% else %}
+  <p class="muted">
+    No ranked candidates yet. Make sure the résumés below show
+    <strong>parsed</strong>, then click <strong>Generate</strong> again.
+  </p>
+  {% endif %}
+  {% if entries %}
+  {% for entry in entries %}
+  {% set sb = entry.score_breakdown or {} %}
+  <div class="card candidate-card">
+    <div class="card-header">
+      <span class="rank">#{{ entry.rank }}</span>
+      <h3 style="margin:0">
+        {# Label links to the (blind) résumé detail. The shortlist read itself
+           stays blind — no PII in the list. #}
+        <a href="{{ url_for('resume_detail', resume_id=entry.resume_id) }}"
+           >{{ entry.display_label }}</a>
+      </h3>
+      {% if is_writer %}
+      {# FU-1: audited reveal straight from the card. POST-only (a reveal is a
+         deliberate, logged act); it records who/what/when and opens the résumé
+         un-blinded. `context=shortlist` so the audit shows where it came from. #}
+      <form method="post"
+            action="{{ url_for('resume_reveal', resume_id=entry.resume_id) }}"
+            style="display:inline">
+        <input type="hidden" name="context" value="shortlist">
+        {# FU-4/D4: this card posts to the SAME guarded `resume_reveal` route as
+           the résumé-detail form, so it carries its OWN one-shot token, minted
+           for THIS card's résumé id — revealing one card cannot invalidate any
+           other card's token. #}
+        <input type="hidden" name="csrf_token"
+               value="{{ (csrf_tokens or {}).get(entry.resume_id|string, '') }}">
+        <button type="submit" class="btn btn-secondary btn-sm">Reveal identity
+          (audited)</button>
+      </form>
+      {# FU-8/ADR-026: a SECOND audited action on this same card — its own
+         one-shot token, independent of the reveal form's token above (same
+         résumé id, distinct action). `context=shortlist` mirrors the reveal
+         form's own context field. #}
+      <form method="post"
+            action="{{ url_for('resume_withdraw', resume_id=entry.resume_id) }}"
+            style="display:inline">
+        <input type="hidden" name="context" value="shortlist">
+        {# The return address. `context` says what KIND of page to go back to;
+           this says which one. Without it `resume_withdraw` cannot build the
+           shortlist URL, and until 2026-08-20 it dropped the user on the
+           résumé page instead — pressing Back then showed a cached list with
+           the withdrawn candidate still on it. #}
+        <input type="hidden" name="job_id" value="{{ entry.job_id }}">
+        <input type="hidden" name="csrf_token"
+               value="{{ (withdraw_csrf_tokens or {}).get(entry.resume_id|string, '') }}">
+        <button type="submit" class="btn btn-danger btn-sm">Withdraw candidate</button>
+      </form>
+      {% endif %}
+      <span class="score-final">{{ ((entry.score_final or 0) * 100)|round|int }}</span>
+    </div>
+
+    <div class="tiles">
+      {% for key in ['skill', 'experience', 'education', 'seniority', 'vector'] %}
+      {% set v = sb.get(key) %}
+      <div class="tile">
+        <span class="tile-label">{{ key }}</span>
+        <span class="tile-value">
+          {%- if v is not none %}{{ (v * 100)|round|int }}{% else %}—{% endif -%}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="chips">
+      {% for c in sb.get('skill_contributions') or [] %}
+      {% if c.get('reason') == 'missing' %}
+      <span class="chip chip-missing">{{ c.skill }} — missing{% if c.is_must_have %}
+        · must-have{% endif %}</span>
+      {% else %}
+      <span class="chip chip-matched">{{ c.skill }}{% if c.is_must_have %}
+        · must-have{% endif %}</span>
+      {% endif %}
+      {% endfor %}
+    </div>
+
+    {% set ev = entry.evidence %}
+    <details class="evidence">
+      <summary>Evidence</summary>
+      {% if ev and ev.get('requirements') %}
+      {% for req in ev.requirements %}
+      <div class="req">
+        <span class="badge badge-{{ req.status }}">{{ req.status }}</span>
+        <span class="req-text">{{ req.requirement }}</span>
+        {% if req.evidence %}
+        <blockquote class="req-evidence">{{ req.evidence }}</blockquote>
+        {% endif %}
+        {% if req.evidence_chunk_ids %}
+        <span class="muted chunks">chunks: {{ req.evidence_chunk_ids|join(', ') }}</span>
+        {% endif %}
+        {# FU-2: the resolved source text behind those chunk ids, already
+           blind-redacted server-side. Collapsible so the panel stays compact. #}
+        {% if req.source_context %}
+        <details class="source-context">
+          <summary class="muted">source text</summary>
+          <blockquote class="chunk-text">{{ req.source_context }}</blockquote>
+        </details>
+        {% endif %}
+      </div>
+      {% endfor %}
+      {% if ev.get('overall_summary') %}
+      <p class="summary">{{ ev.overall_summary }}</p>
+      {% endif %}
+      {% else %}
+      <p class="muted">Evidence not available for this candidate</p>
+      {% endif %}
+    </details>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>

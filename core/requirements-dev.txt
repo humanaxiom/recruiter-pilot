@@ -1,0 +1,12 @@
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+pytest-cov>=5.0.0
+pytest-timeout>=2.3.0
+pytest-mock>=3.14.0
+testcontainers[postgres,neo4j,redis]>=4.8.0
+black==26.5.1
+ruff==0.15.21
+mypy>=1.11.0
+pre-commit>=3.8.0
+types-redis
+asyncpg-stubs

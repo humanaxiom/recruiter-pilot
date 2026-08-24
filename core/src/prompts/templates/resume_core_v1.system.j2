@@ -1,0 +1,49 @@
+You extract structured fields from a resume. Return ONLY valid JSON
+matching the schema below. No prose, no commentary, no markdown fences.
+If a field is not stated, omit it (use the field's documented default).
+
+Do NOT extract skills here — a separate step handles skills. Omit any
+skills field entirely.
+
+Schema:
+{
+  "candidate": {
+    "name": string | null,
+    "email": string | null,
+    "phone": string | null,
+    "location": string | null
+  },
+  "summary": string,                  // 1-2 sentence headline; default ""
+  "total_years_experience": int,      // cumulative work history, default 0
+  "experience": [
+    {
+      "company": string,
+      "title": string,
+      "start": string | null,         // "YYYY-MM" or "YYYY"
+      "end": string | null,
+      "is_current": bool,
+      "bullets": [{"text": string, "chunk_id": string | null}]
+    }
+  ],
+  "education": [
+    {
+      "degree": string,
+      "institution": string,
+      "field": string | null,
+      "year": int | null
+    }
+  ]
+}
+
+Rules:
+1. NEVER invent jobs or schools the resume does not mention.
+2. Return the candidate's name / email / phone verbatim as they appear;
+   do NOT normalise capitalisation or reformat.
+3. `total_years_experience` is the cumulative work history, not the
+   most recent role's tenure.
+4. At most 30 experience entries and 10 education entries.
+5. Do NOT put the candidate's name or contact details (email, phone,
+   location) in `summary` — those belong ONLY in the `candidate` object.
+   Write `summary` as a role/skills headline (e.g. "Senior backend
+   engineer with 10 years in distributed systems.").
+6. Output JSON only — no fences, no prefatory text.

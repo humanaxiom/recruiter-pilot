@@ -1,0 +1,109 @@
+# Skill families DERIVED from the harmonized SFU JD corpus (jd-bank `canonical_jds`,
+# 1,802 JDs / 9,176 qualification statements / 1,222 distinct titles / 449 departments).
+#
+# Every member below was selected because it appears in that corpus at or above the
+# frequency floor — this is not a guessed ontology. Counts in comments are corpus
+# occurrences of that term or its close variants.
+#
+# The existing 19 software families in categories.yaml are KEPT unchanged (they serve
+# SFU's actual IT postings); these are ADDITIVE.
+
+finance:
+  # financial administration 65 · budgeting 183 · financial analysis 61 · budget management 60
+  [financial management, financial administration, financial analysis, financial
+   reporting, financial policies, budgeting, budget management, budget planning,
+   forecasting, accounting, professional accounting designation, accounts payable,
+   accounts receivable, payroll, procurement, purchasing, contract management,
+   grant administration, research funding, audit, internal controls, reconciliation,
+   cost analysis, revenue management, endowment, financial systems]
+
+student_affairs:
+  # student services 92 · academic advising 85 · student development 52 · student recruitment 50
+  [student services, academic advising, student advising, student recruitment,
+   student development, student engagement, enrollment management, admissions,
+   admissions advising, registration, graduation, convocation, student information
+   systems, student records, academic standing, financial aid, scholarships, awards,
+   international student advising, student conduct, residence life, orientation,
+   co-op education, career services, accessibility services]
+
+academic_programs:
+  # program development 63 · curriculum development 36 · program administration 36 · academic policies 33
+  [curriculum development, program development, program administration, program
+   coordination, program evaluation, academic policies, academic regulations,
+   course scheduling, timetabling, accreditation, program review, learning outcomes,
+   teaching support, academic integrity, calendar administration]
+
+research_admin:
+  # research 339 · research administration/ethics/grants across the corpus
+  [research administration, research ethics, research grants, grant writing,
+   funding applications, tri-council, research compliance, knowledge mobilization,
+   research partnerships, laboratory management, data management plans]
+
+human_resources:
+  # human resources 40 · collective agreements 40 · recruitment 153 · staff supervision 34
+  [human resources, hr administration, collective agreements, labour relations,
+   employee relations, recruitment, hiring, staff supervision, performance
+   management, job evaluation, classification, onboarding, workforce planning,
+   compensation, benefits administration, occupational health, return to work,
+   union environment, grievance]
+
+communications:
+  # written communication 72 · social media 59 · content management 56 · public relations 44
+  [written communication, oral communication, verbal communication, presentation
+   skills, public relations, media relations, marketing, marketing communications,
+   social media, content management, content development, copywriting, editing,
+   publications, web content, digital communications, brand management, storytelling,
+   internal communications, community relations, event planning, event management,
+   event coordination]
+
+governance_policy:
+  # university policies 84 · regulations 157 · collective agreements 40 · risk management 29
+  [university policies, policy development, policy analysis, policy interpretation,
+   regulations, compliance, governance, risk management, privacy, fippa, pipeda,
+   freedom of information, records management, information governance, confidentiality,
+   emergency planning, business continuity, health and safety, wcb]
+
+leadership_management:
+  # project management 190 · leadership 173 · strategic planning 106
+  [leadership, strategic planning, strategic thinking, project management, change
+   management, program management, people management, team leadership, supervision,
+   mentoring, coaching, consultation, stakeholder engagement, stakeholder management,
+   external relations, partnership development, community engagement, negotiation,
+   conflict resolution, facilitation, committee work, vendor management,
+   process improvement, continuous improvement]
+
+analysis_reporting:
+  # reporting 118 · data analysis 54 · business analysis 45 · analytical reasoning 32
+  [data analysis, business analysis, analytical reasoning, quantitative analysis,
+   statistical analysis, reporting, dashboards, data visualization, requirements
+   gathering, business requirements, process mapping, needs assessment, program
+   assessment, survey design, environmental scan, benchmarking, forecasting models]
+
+equity_indigenous:
+  # TRC Calls to Action / Aboriginal Reconciliation Council appear as named corpus requirements
+  [equity diversity and inclusion, edi, anti-racism, decolonization, indigenization,
+   truth and reconciliation, trc calls to action, indigenous engagement, indigenous
+   relations, cultural competency, accessibility, universal design, accommodation,
+   human rights]
+
+facilities_operations:
+  # campus space planning / scheduling software appear as named corpus requirements
+  [space planning, facilities management, campus planning, capital projects,
+   building operations, maintenance planning, asset management, logistics,
+   inventory management, shipping and receiving, fleet, security operations,
+   access control, sustainability]
+
+interpersonal_core:
+  # interpersonal 139 · organizational skills 25 · problem-solving 55 · time management 20
+  # NOTE: these are COMPETENCIES, not tools. See the caveat in the accompanying report —
+  # the current skill scorer (years x recency x ontology weight) does not model them well.
+  [interpersonal skills, organizational skills, time management, problem solving,
+   critical thinking, attention to detail, discretion, judgement, adaptability,
+   customer service, client service, teamwork, collaboration, initiative,
+   multitasking, prioritization]
+
+health_wellness:
+  # athletic injury / counselling / health services appear as named corpus requirements
+  [athletic therapy, injury prevention, injury assessment, counselling, mental health
+   support, crisis intervention, case management, health promotion, first aid,
+   clinical practice, patient care]

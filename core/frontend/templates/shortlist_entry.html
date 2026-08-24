@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}{{ entry.display_label or 'Shortlist entry' }} — Why this rank?{% endblock %}
+{#
+  "Why this rank?" defense pack, slice 1. The score-composition/evidence
+  panels render ONLY from ``explanation`` (a ``ShortlistExplanation`` built by
+  ``src.services.explanation.shortlist_entry_explanation`` in
+  ``frontend/app.py``) -- NO arithmetic, and no "are weights available"
+  derivation, happens in this template. That is deliberate: the honesty guard
+  (weight * score = contribution, "no generation-time weights -> no
+  contribution shown") lives in exactly one tested place
+  (``test_services_explanation.py``), so it can never drift between the
+  service and the page. This template only iterates and formats rows the
+  explanation object already computed.
+
+  The bare identity block above the panels (rank/label/score/résumé link)
+  reads off ``entry``, which is ALWAYS a validated ``ShortlistEntry`` DTO --
+  or, when validation failed, the coerced ``_EntryHeader`` carrying exactly
+  those four display fields (see the route). It is never the raw backend
+  payload, so a field the backend should not have sent has no route here.
+
+  ``display_label`` is a BLIND-REVIEW field: ``_row_to_entry`` (the NON-blind
+  path) never sets it, so it is None on every entry of a job with
+  blind_review = FALSE. Every read of it below therefore carries a fallback --
+  interpolating it raw rendered the literal text "None" at the reader.
+
+  PRIVACY: renders ONLY fields ``explanation``/``entry`` expose. Never
+  re-fetches the résumé, never reaches around either object for a raw field.
+#}
+{% macro pct(v) -%}
+{{- (v * 100)|round|int if v is not none else '—' -}}
+{%- endmacro %}
+{# A SCORE the row never recorded is reported as such. Not "0%": an absent
+   number and a zero are different claims about a candidate, and only one of
+   them is true here. Mirrors the "weights unavailable" wording below. #}
+{% macro score_cell(v) -%}
+{{- pct(v) if v is not none else 'not recorded' -}}
+{%- endmacro %}
+
+{% block content %}
+{# ADR-009 guard: this page explains ranking FOR this job's requirements —
+   never the reverse ("what jobs suit this candidate"), which lives on a
+   separate reverse-match view. #}
+<div class="direction-banner">
+  <span>This panel explains how {{ entry.display_label or 'this candidate' }} was
+    scored <strong>for this job's requirements</strong> — it is not a reverse
+    match and does not indicate what other jobs might suit this candidate.</span>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="rank">#{{ entry.rank }}</span>
+    <h2 style="margin:0">{{ entry.display_label or 'Shortlist entry' }}</h2>
+    <span class="score-final">{{ pct(entry.score_final) }}</span>
+  </div>
+  {% if entry.resume_id %}
+  <p><a class="btn btn-secondary btn-sm"
+        href="{{ url_for('resume_detail', resume_id=entry.resume_id) }}">View
+     résumé</a></p>
+  {% endif %}
+
+  {% if not explanation %}
+  <p class="muted">Detailed score explanation unavailable for this entry.</p>
+  {% else %}
+
+  <h3>Score composition</h3>
+  {% if not explanation.weights_available %}
+  <p class="muted">Weights unavailable — this entry predates generation-time
+    weight logging, so a contribution table cannot be shown honestly. The raw
+    sub-scores below are still the ones this entry was ranked with; only the
+    weight and the weight × score contribution columns are omitted.</p>
+  {% endif %}
+  {% if not explanation.scores_available %}
+  <p class="muted">Some sub-scores were not recorded for this entry, so they
+    are shown as "not recorded" rather than as 0% — an absent score and a
+    score of zero are different claims, and only the first one is true here.
+    No contribution is shown for a sub-score that was never recorded.</p>
+  {% endif %}
+  {# ROADMAP A4 (evidence cliff). Evidence extraction runs on the top
+     `evidence_k` candidates by structured score; anyone below that was never
+     submitted to it. Their stored evidence and motivation scores are real 0.0
+     floats, so without this they render as an affirmative 0% —
+     indistinguishable from a candidate whose evidence WAS examined and
+     supported nothing. On a page whose purpose is defending a ranking
+     decision, that is a positive false claim about a person. #}
+  {% set evidence_not_assessed = explanation.evidence_assessed is sameas false %}
+  {% if evidence_not_assessed %}
+  <p class="muted"><strong>Evidence was not assessed for this candidate.</strong>
+    Evidence extraction runs on the highest-scoring candidates by the structured
+    score; this candidate ranked below that cut-off, so no evidence was examined
+    for them either way. The evidence and motivation rows below therefore show
+    "not assessed" rather than 0% — nothing was measured and found lacking.
+    Their headline score is correspondingly lower than it would be had they been
+    assessed, so it is <strong>not comparable</strong> with the scores of
+    candidates above the cut-off.</p>
+  {% endif %}
+
+  <table class="table contribution-table">
+    <thead>
+      <tr><th>Component</th><th>Weight</th><th>Score</th><th>Contribution</th></tr>
+    </thead>
+    <tbody>
+      {# `from_stage3` marks the two rows produced by evidence extraction. A
+         candidate below the cut-off has neither measured; one above it may
+         genuinely score 0 on either (motivation is 0.0 for every candidate
+         with no cover letter), and that real zero must keep rendering as 0. #}
+      {% for label, row, from_stage3 in [
+          ('Structured', explanation.structured, false),
+          ('Evidence', explanation.evidence, true),
+          ('Motivation', explanation.motivation, true),
+      ] %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ pct(row.weight) }}</td>
+        <td>
+          {%- if from_stage3 and evidence_not_assessed -%}
+          not assessed
+          {%- else -%}
+          {{ score_cell(row.score) }}
+          {%- endif -%}
+        </td>
+        <td>
+          {%- if from_stage3 and evidence_not_assessed -%}
+          —
+          {%- else -%}
+          {{ pct(row.contribution) }}
+          {%- endif -%}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h4>Structured sub-scores</h4>
+  {# ROADMAP A6. Two of the five sub-scores below can be computed from a
+     policy FALLBACK rather than a real comparison, and the fallback value is
+     byte-identical to a genuine measurement -- so it is disclosed here, the
+     same way the evidence cliff is disclosed above. `is sameas false` is
+     Jinja IDENTITY, not truthiness: `None` (legacy row, unknown either way)
+     and `0`/`0.0` must not match, only a real, explicit `False`. #}
+  {% set seniority_not_assessed = explanation.seniority_assessed is sameas false %}
+  {% set vector_not_comparable  = explanation.vector_comparable  is sameas false %}
+  {% if seniority_not_assessed %}
+  <p class="muted"><strong>Seniority was not assessed for this candidate.</strong>
+    No readable job title was found anywhere on their résumé, so no comparison
+    against this job's title was possible. The seniority row below therefore
+    shows "not assessed" rather than a score — the stored value is a policy
+    fallback, not a judgement about this candidate's seniority.</p>
+  {% endif %}
+  {% if vector_not_comparable %}
+  <p class="muted"><strong>Semantic similarity was not comparable for this
+    candidate.</strong> Every candidate in this pool scored identically on
+    semantic similarity (often because the pool has only one candidate), so
+    the vector row below shows "not assessed" rather than a score — the
+    percentage would reflect the pool, not this candidate's match.</p>
+  {% endif %}
+  {# ROADMAP A6 siblings. Same `is sameas false` identity discipline as the
+     two above. Precedence for education: when the JD states no education
+     bar at all, `score_education` returns its 1.0 fallback BEFORE it ever
+     looks at the candidate's parsed levels, so an unreadable-education
+     paragraph would be describing a 0% that was never computed. Both facts
+     are still recorded independently on the write path; only the paragraph
+     SHOWN is chosen -- the bar-not-stated one wins when both are false. #}
+  {% set experience_bar_not_stated = explanation.experience_bar_stated is sameas false %}
+  {% set education_bar_not_stated  = explanation.education_bar_stated  is sameas false %}
+  {% set education_unreadable      = explanation.education_readable    is sameas false %}
+  {% set education_not_assessed = education_bar_not_stated or education_unreadable %}
+  {% if experience_bar_not_stated %}
+  <p class="muted"><strong>Experience was not assessed for this candidate.</strong>
+    This job posting states no minimum years of experience, so every
+    candidate scores full marks on this row — it reflects the job posting,
+    not this candidate. The experience row below therefore shows "not
+    assessed" rather than a score.</p>
+  {% endif %}
+  {% if education_bar_not_stated %}
+  <p class="muted"><strong>Education was not assessed for this candidate.</strong>
+    This job posting states no minimum education level, so every candidate
+    scores full marks on this row — it reflects the job posting, not this
+    candidate. The education row below therefore shows "not assessed" rather
+    than a score.</p>
+  {% elif education_unreadable %}
+  <p class="muted"><strong>Education was not assessed for this candidate.</strong>
+    No education could be read from this résumé at all, so the education row
+    stores 0% — which is <em>lower</em> than a candidate whose degree is
+    below this job's bar would score, since that earns partial credit. This
+    is a limit of parsing the document, not a finding about this candidate's
+    qualifications. The education row below therefore shows "not assessed"
+    rather than a score.</p>
+  {% endif %}
+  <table class="table contribution-table">
+    <thead>
+      <tr><th>Component</th><th>Weight</th><th>Score</th><th>Contribution</th></tr>
+    </thead>
+    <tbody>
+      {% for label, row, not_assessed in [
+          ('skill', explanation.skill, false),
+          ('experience', explanation.experience, experience_bar_not_stated),
+          ('education', explanation.education, education_not_assessed),
+          ('seniority', explanation.seniority, seniority_not_assessed),
+          ('vector', explanation.vector, vector_not_comparable),
+      ] %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ pct(row.weight) }}</td>
+        <td>
+          {%- if not_assessed -%}
+          not assessed
+          {%- else -%}
+          {{ score_cell(row.score) }}
+          {%- endif -%}
+        </td>
+        <td>
+          {%- if not_assessed -%}
+          —
+          {%- else -%}
+          {{ pct(row.contribution) }}
+          {%- endif -%}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Verified evidence</h3>
+  {% if explanation.requirements %}
+  <p class="muted">
+    Legend: "Met" means verified evidence was found and directly quoted from
+    the résumé. "Partial" means some evidence was found but does not fully
+    establish the requirement. "Missing" means no verifiable evidence was
+    found — this includes any quoted evidence that failed verification, which
+    is always shown as missing, never as met.
+  </p>
+  <details class="evidence" open>
+    <summary>Requirements ({{ explanation.requirements|length }})</summary>
+    {% for req in explanation.requirements %}
+    <div class="req">
+      <span class="badge badge-{{ req.status }}">{{ req.status }}</span>
+      <span class="req-text">{{ req.requirement }}</span>
+      {% if req.evidence %}
+      <blockquote class="req-evidence">{{ req.evidence }}</blockquote>
+      {% endif %}
+      {% if req.evidence_chunk_ids %}
+      <span class="muted chunks">chunks: {{ req.evidence_chunk_ids|join(', ') }}</span>
+      {% endif %}
+      {# FU-2: the resolved source text behind those chunk ids, already
+         blind-redacted server-side. Collapsible so it stays out of the
+         default view -- a larger redaction surface than the quote itself. #}
+      {% if req.source_context %}
+      <details class="source-context">
+        <summary class="muted">source text</summary>
+        <blockquote class="chunk-text">{{ req.source_context }}</blockquote>
+      </details>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </details>
+  {% else %}
+  <p class="muted">Evidence not available for this candidate</p>
+  {% endif %}
+
+  {% endif %}
+</div>
+{% endblock %}

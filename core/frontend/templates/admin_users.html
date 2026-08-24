@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Users</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Username</th><th>Display name</th><th>Email</th>
+      <th>Role</th><th>Active</th><th>Assign role</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <td>{{ user.cas_username }}</td>
+      <td>{{ user.display_name or '—' }}</td>
+      <td>{{ user.email or '—' }}</td>
+      <td><span class="pill">{{ user.role or 'no role' }}</span></td>
+      <td>{{ 'yes' if user.active else 'no' }}</td>
+      <td>
+        <form action="{{ url_for('admin_set_user_role', user_id=user.id) }}"
+              method="post" style="display:flex; gap:8px; align-items:center">
+          <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+          <select class="input" name="role">
+            {% for role in roles %}
+            <option value="{{ role }}" {% if role == user.role %}selected{% endif %}>{{ role }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-secondary btn-sm" type="submit">Save</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="muted">No users yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,56 @@
+{#
+  HTMX poll fragment. Rendered both inline (in job_detail.html) and standalone
+  (by the GET /jobs/<id>/resumes-table route). While `resumes_pending` is true
+  (any row still uploaded/parsing) it keeps its `hx-trigger` so the browser
+  re-polls every 3s; once every row is terminal (parsed/failed) it DROPS the
+  trigger so polling stops.
+
+  Blind-boundary: rows only ever surface `candidate_name` exactly as the backend
+  returns it (null under a blind job) — no other candidate field is rendered.
+#}
+<div id="resumes-table"
+  {%- if resumes_pending %}
+     hx-get="{{ url_for('resumes_table', job_id=job_id) }}"
+     hx-trigger="every 3s"
+     hx-swap="outerHTML"
+  {%- endif %}>
+  {% if resumes_pending %}
+  <span class="htmx-indicator spinner">refreshing…</span>
+  {% endif %}
+  <table class="table">
+    <thead>
+      <tr><th>Candidate</th><th>File</th><th>Status</th><th>Uploaded</th></tr>
+    </thead>
+    <tbody>
+      {% for resume in resumes %}
+      <tr>
+        <td>{{ resume.candidate_name or '—' }}</td>
+        <td>{{ resume.original_filename }}</td>
+        <td>
+          <span class="pill pill-{{ resume.status }}">{{ resume.status }}</span>
+          {%- if resume.withdrawn_at %}
+          {# ADR-026/FU-8. `status` is the PARSE status, so a withdrawn
+             candidate rendered here as plain `parsed` — byte-identical to an
+             active one — and withdrawal looked like it had done nothing on the
+             page a recruiter lands on. `withdrawn_at` has been on
+             `ResumeListItem` since FU-8; this table simply never read it.
+
+             MARKED, not hidden: ADR-026's decision is "exclude and RETAIN".
+             Hiding the row would lose the record and strand Reinstate, which
+             is only reachable through this table. #}
+          <span class="pill pill-withdrawn" title="Withdrawn — retained for audit, and excluded from every shortlist. Open the candidate to reinstate.">withdrawn</span>
+          {%- endif %}
+          {%- if resume.degraded %}
+          {# FU-7 §4 / ADR-030: skills extraction fell back to keyword scan;
+             this résumé is excluded from shortlists until re-parsed. #}
+          <span class="pill pill-degraded" title="Skills extraction failed (AI); ranked on keyword-scan skills only — excluded from shortlists until re-parsed.">degraded</span>
+          {%- endif %}
+        </td>
+        <td class="muted">{{ resume.uploaded_at or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="muted">No résumés uploaded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

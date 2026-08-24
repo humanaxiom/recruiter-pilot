@@ -1,0 +1,29 @@
+Evaluate the candidate against these {{ requirements|length }} requirements,
+then assess their cover letter.
+
+Job title: {{ job_title }}
+
+Requirements:
+{% for req in requirements %}
+{{ loop.index }}. {{ req }}
+{% endfor %}
+
+Candidate resume chunks (cite by c_ id for requirements):
+
+{% for chunk in chunks %}
+--- chunk {{ chunk.id }} (section: {{ chunk.section }}) ---
+{{ chunk.text }}
+
+{% endfor %}
+--- end resume ---
+
+Cover letter chunks (cite by cl_ id, for cover_letter_evidence ONLY):
+
+{% for chunk in cover_letter_chunks %}
+--- chunk {{ chunk.id }} (section: {{ chunk.section }}) ---
+{{ chunk.text }}
+
+{% endfor %}
+--- end cover letter ---
+
+Return the JSON.

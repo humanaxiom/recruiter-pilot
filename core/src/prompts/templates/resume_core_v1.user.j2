@@ -1,0 +1,9 @@
+Extract the JSON from this resume. The resume has been pre-chunked;
+each chunk is labelled with a stable id you may cite in bullets.
+
+{% for chunk in chunks %}
+--- chunk {{ chunk.id }} (section: {{ chunk.section }}, page {{ chunk.page }}) ---
+{{ chunk.text }}
+
+{% endfor %}
+--- end ---

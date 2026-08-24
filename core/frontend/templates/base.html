@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}recruiter-assistant{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <script src="{{ url_for('static', filename='vendor/htmx.min.js') }}" defer></script>
+</head>
+{# Phase 1.3: every htmx request on this page inherits the anti-forgery header
+   by walking up the DOM to here — including requests fired from partials
+   swapped in later, which is why this lives on <body> and not on each control.
+   Plain <form> posts carry the same token as a hidden field instead. #}
+<body hx-headers='{"X-CSRF-Token": "{{ csrf_page_token }}"}'>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="nav-logo" href="{{ url_for('index') }}">recruiter-assistant</a>
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}">Jobs</a>
+        {% if current_user and current_user.role == "admin" %}
+        <a href="{{ url_for('admin_users') }}">Users</a>
+        {% endif %}
+        {# Phase 1.4: the auditor's only destination. Shown to admin too, so an
+           administrator investigating a report need not be re-roled to see the
+           record. `current_user is None` is dev mode (admin-equivalent). #}
+        {% if current_user is none or current_user.role in ("admin", "auditor") %}
+        <a href="{{ url_for('audit_log') }}">Access record</a>
+        {% endif %}
+        {% if current_user and current_user.authenticated %}
+        <span class="nav-user">{{ current_user.username }}{% if current_user.role %} ({{ current_user.role }}){% endif %}</span>
+        <a class="nav-logout" href="{{ logout_url }}">Logout</a>
+        {% elif current_user %}
+        <a class="nav-login" href="{{ login_url }}">Login</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class="flash-list" role="status">
+      {% for message in messages %}
+      <li class="flash">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

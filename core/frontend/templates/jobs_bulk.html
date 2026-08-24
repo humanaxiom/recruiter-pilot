@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Bulk JD upload{% endblock %}
+{% block content %}
+<h1>Bulk job-description upload</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+{% set s = summary or {'created': 0, 'duplicate': 0, 'failed': 0} %}
+<p class="summary">
+  {{ s.created }} created, {{ s.duplicate }} duplicate, {{ s.failed }} failed
+</p>
+
+{% if results %}
+<table class="table">
+  <thead>
+    <tr><th>File</th><th>Outcome</th><th>Title</th><th>Details</th></tr>
+  </thead>
+  <tbody>
+    {% for r in results %}
+    <tr>
+      <td>{{ r.original_filename }}</td>
+      <td><span class="pill pill-{{ r.outcome }}">{{ r.outcome }}</span></td>
+      <td>
+        {% if r.job_id %}
+        <a href="{{ url_for('job_detail', job_id=r.job_id) }}">{{ r.title or '—' }}</a>
+        {% else %}
+        {{ r.title or '—' }}
+        {% endif %}
+      </td>
+      <td class="muted">{{ r.reason or '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<p><a href="/">&larr; Back to jobs</a></p>
+{% endblock %}

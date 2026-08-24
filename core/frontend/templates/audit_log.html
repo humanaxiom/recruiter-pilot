@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Access record — recruiter-assistant{% endblock %}
+
+{% block content %}
+<h1>Access record</h1>
+<p class="muted">
+  Every recorded action, newest first. Nothing on this page changes anything —
+  the one control here reveals a withheld note, and that reveal is itself
+  recorded against your name.
+</p>
+
+{% if error %}
+<p class="alert alert-error" role="alert">{{ error }}</p>
+{% endif %}
+
+<form method="get" action="{{ url_for('audit_log') }}" class="filter-row"
+      style="margin:16px 0; display:flex; gap:8px; align-items:center">
+  <label class="label" for="action">Action</label>
+  <select class="input" id="action" name="action">
+    <option value="">All actions</option>
+    {% for a in actions %}
+    <option value="{{ a }}" {% if a == action %}selected{% endif %}>{{ a }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-secondary btn-sm" type="submit">Filter</button>
+  {% if action %}
+  <a class="btn btn-secondary btn-sm" href="{{ url_for('audit_log') }}">Clear</a>
+  {% endif %}
+</form>
+
+{% if not entries %}
+<p class="muted">
+  No recorded actions{% if action %} for <strong>{{ action }}</strong>{% endif %}.
+</p>
+{% else %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>When</th>
+      <th>Who</th>
+      <th>Action</th>
+      <th>Subject</th>
+      <th>Job</th>
+      <th>Context</th>
+      <th>Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in entries %}
+    <tr>
+      <td>{{ e.occurred_at }}</td>
+      <td>
+        {%- if e.actor_username -%}
+          {{ e.actor_username }}
+        {%- elif e.actor_service -%}
+          {# An unattributable event. Named plainly rather than shown as a
+             blank cell: these are exactly the rows an auditor is looking for,
+             and a blank reads as missing data rather than as a finding. #}
+          <span class="muted" title="No signed-in person is recorded for this
+            action — it was performed by a service credential.">service:
+            {{ e.actor_service }}</span>
+        {%- else -%}
+          <span class="muted">unknown</span>
+        {%- endif -%}
+      </td>
+      <td>{{ e.action }}</td>
+      <td>{{ e.subject_type }} <span class="muted">{{ e.subject_id }}</span></td>
+      <td>{% if e.job_id %}{{ e.job_id }}{% else %}<span class="muted">—</span>{% endif %}</td>
+      <td>{% if e.context %}{{ e.context }}{% else %}<span class="muted">—</span>{% endif %}</td>
+      <td>
+        {#- `details` is jsonb: a legacy or hand-written row can hold a scalar
+            or a list, which the backend withholds wholesale rather than
+            inspecting. Guard on `mapping` so such a row renders as a marker
+            instead of raising on `.items()`. -#}
+        {%- if e.details is mapping -%}
+          {%- set is_revealed = revealed_id and revealed_id == e.id|string -%}
+          {%- set shown = revealed_details if is_revealed else e.details -%}
+          {%- set withheld_keys = e.details.values()|select("equalto", withheld)|list -%}
+          {%- for key, value in shown.items() %}
+          <div>
+            {{ key }}:
+            {%- if value == withheld %}
+            <span class="muted" title="This value is not shown here because it
+              can contain personal information about a candidate.">withheld</span>
+            {%- else %} {{ value }}{% endif %}
+          </div>
+          {%- endfor -%}
+          {%- if is_revealed %}
+          <p class="hint" style="margin:4px 0 0">
+            Revealed to you just now, and recorded in this log under your name.
+            Reloading this page hides it again.
+          </p>
+          {%- elif withheld_keys %}
+          <form method="post"
+                action="{{ url_for('audit_reveal_detail', audit_id=e.id) }}"
+                style="margin-top:4px">
+            <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+            <input type="hidden" name="action" value="{{ action }}">
+            <input type="hidden" name="offset" value="{{ offset }}">
+            <button class="btn btn-secondary btn-sm" type="submit"
+                    title="Show this note. The request is recorded against your
+                    name in this same log.">Reveal note</button>
+          </form>
+          {%- endif -%}
+        {%- elif e.details -%}
+          <span class="muted" title="This row's recorded detail is not in a
+            recognised shape, so none of it is shown.">withheld</span>
+        {%- else -%}
+          <span class="muted">—</span>
+        {%- endif -%}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p class="muted" style="margin-top:12px">
+  Showing {{ entries|length }} record{{ '' if entries|length == 1 else 's' }}
+  starting at {{ offset + 1 }}.
+</p>
+<p class="filter-row" style="display:flex; gap:8px">
+  {% if offset > 0 %}
+  <a class="btn btn-secondary btn-sm"
+     href="{{ url_for('audit_log', action=action or None, offset=[0, offset - page_size]|max) }}">Newer</a>
+  {% endif %}
+  {% if entries|length == page_size %}
+  <a class="btn btn-secondary btn-sm"
+     href="{{ url_for('audit_log', action=action or None, offset=offset + page_size) }}">Older</a>
+  {% endif %}
+</p>
+{% endif %}
+
+<p class="hint" style="margin-top:24px">
+  Some values are shown as <em>withheld</em>. Those are free-text notes that can
+  name a candidate or describe their circumstances, so they are not displayed by
+  default. Where <strong>Reveal note</strong> appears you can read one: the note
+  is shown to you and the request is written into this same record, naming you
+  and the row you opened. Notes with no button are not readable from this page at
+  all.
+</p>
+{% endblock %}

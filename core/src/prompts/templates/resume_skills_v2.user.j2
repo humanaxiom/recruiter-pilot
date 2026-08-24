@@ -1,0 +1,9 @@
+List the distinct skills mentioned in this resume, with years of
+experience and last-used year ONLY where the resume states them.
+
+{% for chunk in chunks %}
+--- chunk {{ chunk.id }} (section: {{ chunk.section }}, page {{ chunk.page }}) ---
+{{ chunk.text }}
+
+{% endfor %}
+--- end ---

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block content %}
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h1 style="margin:0">{{ job.title }}</h1>
+    <span class="pill pill-{{ job.status }}">{{ job.status }}</span>
+    {#
+      Tri-state, not two. Deriving this from `parsed_at` alone made a JD that
+      died yesterday pixel-identical to one that started five seconds ago, which
+      is how twenty dead JDs went unnoticed for a day and why the user who
+      found them reported them as "stuck on parsing".
+    #}
+    {% if job.status == 'draft' and job.parsed_at is none %}
+      {% if job.failure_reason %}
+    <span class="badge-failed">parse failed</span>
+      {% else %}
+    <span class="badge-parsing">parsing…</span>
+      {% endif %}
+    {% endif %}
+  </div>
+  <p class="muted">
+    {{ job.department or '—' }}
+    {% if job.location %} · {{ job.location }}{% endif %}
+    {% if job.min_years %} · {{ job.min_years }}+ yrs{% endif %}
+  </p>
+
+  <h3>Parsed requirements</h3>
+  {% include "parse_status.html" %}
+
+  {#
+    The recovery path for a JD parse that died. Gated on `failure_reason`
+    rather than on `parsed_at`, because a healthy in-flight parse must NOT
+    offer a retry: clicking it would queue a second run of work already
+    underway. The reason itself is rendered because "it failed" is not
+    actionable and "the circuit breaker was open" is — and because until this
+    existed, twenty JDs killed by a since-fixed LLM timeout sat indefinitely
+    with nothing on the page to say so.
+
+    Deliberately OUTSIDE the polled `#parse-status` fragment above: that
+    fragment is swapped wholesale every 3s, which would tear out a form the
+    user is mid-click on.
+  #}
+  {% if is_writer and job.failure_reason %}
+  <div class="parse-failed">
+    <form action="{{ url_for('reparse_job', job_id=job.id) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+      <button class="btn btn-secondary btn-sm" type="submit">Re-parse JD</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if is_writer %}
+  <h3>Status</h3>
+  <div class="filter-row">
+    {% for to in next_states %}
+    <form action="{{ url_for('transition_status', job_id=job.id) }}"
+          method="post" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+      <input type="hidden" name="to" value="{{ to }}">
+      <button class="btn btn-secondary btn-sm" type="submit"
+        {%- if to == 'open' and job.parsed_at is none %} disabled
+        {%- if job.failure_reason %}
+        title="Parsing failed — re-parse the JD before opening for applicants."
+        {%- else %}
+        title="Wait for the LLM to finish parsing the JD."
+        {%- endif %}{% endif %}>
+        {{ transition_labels.get(to, to) }}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+  {#
+    Still blocked on a parse either way — but "wait" is only true advice while
+    something is actually running. For a failed JD it is advice to wait forever,
+    which is precisely what the reporter of the 2026-08-21 incident did.
+  #}
+  {% if 'open' in next_states and job.parsed_at is none %}
+    {% if job.failure_reason %}
+  <p class="hint">Parsing failed, so this job cannot be opened for applicants
+    yet. Re-parse the JD above to try again.</p>
+    {% else %}
+  <p class="hint">Wait for the LLM to finish parsing the JD before opening for
+    applicants.</p>
+    {% endif %}
+  {% endif %}
+
+  <h3>Blind review</h3>
+  <p class="muted">Currently
+    <strong>{{ 'on' if job.blind_review else 'off' }}</strong>.</p>
+  <form action="{{ url_for('blind_review', job_id=job.id) }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+    <input type="hidden" name="blind_review"
+           value="{{ 'false' if job.blind_review else 'true' }}">
+    <button class="btn btn-secondary btn-sm" type="submit">
+      {{ 'Turn off blind review' if job.blind_review else 'Turn on blind review' }}
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <p><a href="{{ url_for('job_shortlist', job_id=job.id) }}">View shortlist</a></p>
+
+  {% if job.status == 'open' and is_writer %}
+  <h3>Upload résumés</h3>
+  <form action="{{ url_for('upload_resumes', job_id=job.id) }}" method="post"
+        enctype="multipart/form-data" hx-encoding="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+    <div class="form-group">
+      <label class="label" for="resume-files">Résumé file(s) — PDF/DOCX, or a
+        .zip of many</label>
+      <input class="input" id="resume-files" name="files" type="file" multiple>
+      <p class="hint">Parsing runs on the local model — a large PDF can take
+        ~1–2 minutes each. The table below updates to <strong>parsed</strong>
+        when it's done.</p>
+    </div>
+    <div class="form-group">
+      <label class="label" for="cover_letter_file">Cover letter file (optional)
+        — PDF/DOCX/RTF/TXT</label>
+      <input class="input" id="cover_letter_file" name="cover_letter_file"
+             type="file">
+    </div>
+    <div class="form-group">
+      <label class="label" for="pairing_manifest">Pairing manifest
+        (manifest.json)</label>
+      <input class="input" id="pairing_manifest" name="pairing_manifest"
+             type="file" accept=".json,application/json">
+      <p class="hint">Optional — pairs each résumé with its cover letter by name.
+        Upload as its own file, NOT inside the résumé zip.</p>
+    </div>
+    <div class="form-group">
+      <label class="label" for="cover_letter_text">…or paste cover letter text
+        (optional)</label>
+      <textarea class="textarea" id="cover_letter_text" name="cover_letter_text"
+                placeholder="Paste an optional cover letter…"></textarea>
+    </div>
+    <div class="form-group checkbox-row">
+      <input type="checkbox" id="consent_acknowledged" name="consent_acknowledged"
+             value="true" required>
+      <label class="label" for="consent_acknowledged" style="margin:0">
+        I confirm the candidate consented to this processing (PIPEDA/FIPPA)</label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Upload</button>
+    </div>
+  </form>
+  {% endif %}
+
+  <h3>Résumé status</h3>
+  {#
+    ADR-026 decision 5/FU-8: lazy-loaded so the main job-detail render never
+    itself calls `get_resume_status_breakdown` — only this fragment does,
+    once the browser fires the `load` trigger.
+  #}
+  <div id="resume-status-breakdown"
+       hx-get="{{ url_for('resume_status_widget', job_id=job.id) }}"
+       hx-trigger="load"
+       hx-swap="outerHTML">
+    <p class="muted">Loading résumé status…</p>
+  </div>
+
+  <h3>Résumés</h3>
+  {% include "resumes_table.html" %}
+</div>
+{% endblock %}

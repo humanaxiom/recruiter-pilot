@@ -1,0 +1,69 @@
+{#
+  HTMX poll fragment for the reverse match (candidate→jobs). Rendered inline (in
+  match_results.html) and standalone (by GET /resumes/<id>/match-results-cards,
+  and returned by POST /resumes/<id>/match-jobs). `reverse_match_job` runs
+  asynchronously, so the first render is empty → it shows "Finding matching
+  jobs…" AND keeps its `hx-trigger` so the browser re-polls every 3s; once
+  ranked jobs exist it renders them WITHOUT the trigger, so polling stops. A
+  bounded `attempt` counter (clamped server-side) stops the poll at the cap.
+
+  Three distinct empty states:
+    * still-finding — a run may be in flight (no `generated_at` yet), within the
+      cap → poll on;
+    * empty-done — the run completed (`generated_at` set) but this résumé matches
+      no open job → a clear "no matches" line, no poll;
+    * gave-up — no result landed within the cap → a give-up line, no poll.
+
+  NO redaction here (ADR-012 §4): the caller owns the résumé and jobs are not
+  personal data, so REAL job titles/departments are shown — correct, not a leak.
+  Each row links to that job's detail page — the candidate→job navigation.
+#}
+{% set a = attempt|default(0) %}
+{% set m = max_attempts|default(400) %}
+{% set entries = results.get('entries') or [] %}
+{% set done = results.get('generated_at') is not none %}
+{% set polling = (not entries) and (not done) and (a < m) %}
+<div id="match-results-cards"
+  {%- if polling %}
+     hx-get="{{ url_for('resume_match_results_cards', resume_id=resume_id) }}?attempt={{ a + 1 }}"
+     hx-trigger="every 3s"
+     hx-swap="outerHTML"
+  {%- endif %}>
+  <table class="table">
+    <thead>
+      <tr><th>#</th><th>Job</th><th>Department</th><th>Match</th></tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+      <tr>
+        <td class="rank">#{{ entry.rank }}</td>
+        <td>
+          {# candidate→job navigation: link the row to that job's detail page. #}
+          <a href="{{ url_for('job_detail', job_id=entry.job_id) }}"
+             >{{ entry.title }}</a>
+        </td>
+        <td>{{ entry.department or '—' }}</td>
+        <td class="score-final">{{ ((entry.score_final or 0) * 100)|round|int }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" class="muted">
+          {% if polling %}
+          <span class="htmx-indicator spinner">polling…</span>
+          Finding matching jobs… ranked openings will appear here. The local
+          model runs on every candidate the run considers, so a full pass
+          realistically takes several minutes and scales with the number of
+          candidates and jobs involved.
+          <br>
+          <span class="elapsed">~{{ a * 3 }}s elapsed</span>
+          {% elif done %}
+          No matching open jobs for this candidate.
+          {% else %}
+          Stopped checking for matching jobs — reload the page to try again.
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

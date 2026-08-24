@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Jobs{% endblock %}
+{% block content %}
+<h1>Jobs</h1>
+
+{% if scoped_view %}
+<p class="muted">Showing your assigned requisitions only — your requisitions, not the full job list.</p>
+{% endif %}
+
+{% if errors %}
+<p class="error">{{ errors }}</p>
+{% endif %}
+
+<details class="newjob card" {% if show_form %}open{% endif %}>
+  <summary>+ New job</summary>
+  <form action="/jobs" method="post" style="margin-top:16px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+    <div class="form-group">
+      <label class="label" for="title">Title</label>
+      <input class="input" id="title" name="title" type="text"
+             value="{{ form.get('title', '') }}" required minlength="2" maxlength="200">
+    </div>
+    <div class="form-group">
+      <label class="label" for="department">Department</label>
+      <input class="input" id="department" name="department" type="text"
+             value="{{ form.get('department', '') }}">
+    </div>
+    <div class="form-group">
+      <label class="label" for="location">Location</label>
+      <input class="input" id="location" name="location" type="text"
+             value="{{ form.get('location', '') }}">
+    </div>
+    <div class="form-group">
+      <label class="label" for="min_years">Minimum years of experience</label>
+      <input class="input" id="min_years" name="min_years" type="number" min="0" max="50"
+             value="{{ form.get('min_years', '') }}">
+    </div>
+    <div class="form-group">
+      <label class="label" for="shortlist_top_percent">Shortlist size (% of ranked candidates)</label>
+      <input class="input" id="shortlist_top_percent" name="shortlist_top_percent" type="number" min="1" max="100"
+             value="{{ form.get('shortlist_top_percent') or 100 }}">
+    </div>
+    <div class="form-group">
+      <label class="label" for="jd-file">Prefill from a JD file</label>
+      <input class="input" id="jd-file" name="file" type="file"
+             hx-post="/jobs/jd-extract" hx-target="#description"
+             hx-swap="innerHTML" hx-encoding="multipart/form-data"
+             hx-indicator="#jd-spinner">
+      <span id="jd-spinner" class="htmx-indicator spinner">extracting…</span>
+    </div>
+    <div class="form-group">
+      <label class="label" for="description">Description</label>
+      <textarea class="textarea" id="description" name="description_raw"
+                required minlength="50"
+                placeholder="Paste the job description (min 50 characters)…">{{ form.get('description_raw', '') }}</textarea>
+    </div>
+    <div class="form-group checkbox-row">
+      <input type="checkbox" id="blind_review" name="blind_review"
+             {% if (not show_form) or form.get('blind_review') %}checked{% endif %}>
+      <label class="label" for="blind_review" style="margin:0">Blind review (recommended)</label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Create job</button>
+    </div>
+  </form>
+</details>
+
+<details class="bulkjob card">
+  <summary>+ Bulk upload job descriptions</summary>
+  <form action="/jobs/bulk" method="post" enctype="multipart/form-data"
+        style="margin-top:16px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+    <div class="form-group">
+      <label class="label" for="bulk-files">JD files (or a .zip)</label>
+      <input class="input" id="bulk-files" name="files" type="file" multiple
+             accept=".pdf,.docx,.txt,.json,.zip">
+      <span class="muted">One job is created per file (txt / json / pdf / docx),
+        or per member of a .zip.</span>
+    </div>
+    <div class="form-group">
+      <label class="label" for="bulk-manifest">Metadata manifest (optional CSV)</label>
+      <input class="input" id="bulk-manifest" name="manifest" type="file"
+             accept=".csv">
+      <span class="muted">Columns: filename (required), then title, department,
+        location, employment_type, seniority, min_years, retention_days,
+        blind_review.</span>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Upload job descriptions</button>
+    </div>
+  </form>
+</details>
+
+<div class="filter-row">
+  <a href="{{ url_for('index') }}" class="{% if not status_filter %}active{% endif %}">All</a>
+  {% for s in statuses %}
+  <a href="{{ url_for('index', status=s) }}"
+     class="{% if status_filter == s %}active{% endif %}">{{ s }}</a>
+  {% endfor %}
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Title</th><th>Department</th><th>Location</th>
+      <th>Status</th><th>Résumés</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for job in jobs %}
+    <tr>
+      <td><a href="{{ url_for('job_detail', job_id=job.id) }}">{{ job.title }}</a></td>
+      <td>{{ job.department or '—' }}</td>
+      <td>{{ job.location or '—' }}</td>
+      <td><span class="pill pill-{{ job.status }}">{{ job.status }}</span></td>
+      <td>{{ job.resume_count if job.resume_count is not none else 0 }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">No jobs yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

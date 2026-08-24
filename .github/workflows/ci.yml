@@ -1,0 +1,117 @@
+name: CI — Gates Pipeline (offline-safe)
+
+on:
+  push:
+    branches: [main, "agent/**", "feat/**", "fix/**", "chore/**"]
+  pull_request:
+    branches: [main]
+  # Manual trigger: lets an operator re-run the full gate suite on demand
+  # (e.g. to confirm Actions billing/quota after moving orgs) without pushing a
+  # new commit. A freshly forked/relocated repo suppresses its first push run,
+  # so push/PR alone can leave CI un-runnable until the next commit lands.
+  workflow_dispatch: {}
+
+env:
+  PYTHON_VERSION: "3.11"
+  COVERAGE_THRESHOLD: "80"
+
+jobs:
+  # ─── Gate 0: Branch naming ──────────────────────────────────────────────
+  branch-name:
+    name: "Gate: branch-name"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "Branch: $BRANCH"
+          if [[ "$BRANCH" == "main" ]]; then exit 0; fi
+          if [[ ! "$BRANCH" =~ ^(agent|feat|fix|chore)/[a-zA-Z0-9._-]+$ ]]; then
+            echo "::error::Branch '$BRANCH' must match (agent|feat|fix|chore)/<slug>"
+            exit 1
+          fi
+
+  # ─── Gates 1-3: Lint / Format / Types ───────────────────────────────────
+  static:
+    name: "Gates: ruff · black · mypy"
+    runs-on: ubuntu-latest
+    needs: branch-name
+    defaults: { run: { working-directory: core } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: core/requirements*.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check src tests frontend
+      - run: black --check src tests frontend
+      - run: mypy src frontend --strict
+
+  # ─── Gates 4 & 6: Unit tests + Coverage ─────────────────────────────────
+  unit:
+    name: "Gates: unit · coverage ≥ 80%"
+    runs-on: ubuntu-latest
+    needs: static
+    defaults: { run: { working-directory: core } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: core/requirements*.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Unit tests with coverage gate
+        run: |
+          pytest tests/unit \
+            --cov=src --cov=frontend --cov-report=xml --cov-report=term-missing \
+            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
+            --timeout=120 -v
+      - uses: actions/upload-artifact@v4
+        with: { name: coverage-xml, path: core/coverage.xml }
+
+  # ─── Gate 5: Integration (service containers — no cloud calls) ─────────
+  integration:
+    name: "Gate: integration (pg + neo4j + redis)"
+    runs-on: ubuntu-latest
+    needs: unit
+    defaults: { run: { working-directory: core } }
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: app, POSTGRES_PASSWORD: app, POSTGRES_DB: recruiter }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U app" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: core/requirements*.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Integration tests (testcontainers spins Neo4j; pg/redis via services)
+        run: pytest tests/integration -v --timeout=300
+        env:
+          POSTGRES_DSN: postgresql://app:app@localhost:5432/recruiter
+          REDIS_URL: redis://localhost:6379/0
+          # NOTE: no LLM_BASE_URL — embeddings are mocked in integration tests.
+          # CI never calls a model endpoint; inference is host-only by design.
+
+  # ─── All gates green ────────────────────────────────────────────────────
+  gates-green:
+    name: "✅ ALL GATES GREEN"
+    runs-on: ubuntu-latest
+    needs: [branch-name, static, unit, integration]
+    steps:
+      - run: echo "All gates green — mergeable."

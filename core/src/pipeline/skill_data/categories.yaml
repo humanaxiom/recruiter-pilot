@@ -1,0 +1,462 @@
+# Skill families (categories) for SEMANTIC skill matching (ADR 0020).
+#
+# Maps a skill FAMILY → the canonical skills that belong to it. The matcher
+# gives a required skill GRADUATED credit: an exact skill match scores full,
+# a candidate skill in the SAME family scores partial, an unrelated skill 0.
+# This is why a candidate with "react" credits a "frontend development"
+# requirement (both `frontend`), while "python" credits nothing toward "voip"
+# (different families) — embedding cosine can't separate those reliably
+# (calibration: voip↔python 0.72 > react↔frontend 0.70), a curated family map
+# can.
+#
+# A skill may belong to MORE THAN ONE family (list it under each); the matcher
+# credits a shared family. Keep names lower-cased and matching the canonical
+# names in aliases.yaml. Skills not listed here get no CURATED family. Since
+# ADR-044 a parse-time classifier may assign them a family from the keys below,
+# recorded separately on `Skill.classified_categories` so a curated family and
+# a model-inferred one stay distinguishable forever. Note it is NOT a backfill:
+# the ADR-008 skill hash is one-way, so classification has to happen while the
+# cleartext name is still in hand and can never be run over the graph later.
+# (An earlier version of this comment described a backfill task; that design is
+# impossible for exactly that reason.)
+#
+# The TOP-LEVEL KEYS of this file are the family VOCABULARY. Three things read
+# them in THIS repo: `skills_graph._category_table()`, the
+# `match_non_matchable_families` setting, and — since ADR-044 —
+# `skills_graph._category_family_names()`, which feeds
+# `skill_classifier.known_families()`. `worker.skill_normalize
+# .skill_categories_vocab()`, named in the hris original, was never ported and
+# does not exist here.
+#
+# Grow the taxonomy by adding a family key here (no code change) — but note it
+# is no longer inert: a new key also widens the parse-time classifier's closed
+# assignable set and the family list named in its prompt (ADR-044). Adding a
+# family makes it a legal answer the model may assign to any out-of-vocabulary
+# skill name. `other` and `domain` are deliberate
+# catch-alls kept in the vocab but EXCLUDED from family credit by
+# `match_non_matchable_families` (they're junk/ambiguous buckets, not a
+# relatedness signal). Add freely; matching quality compounds from this map.
+
+# `canvas` is intentionally multi-family: HTML5 Canvas (frontend) AND Canvas LMS
+# (edtech). One canonical node carries both families so it credits either
+# requirement (ADR 0021 accepts the resulting rare false-positive over a miss).
+frontend: [javascript, typescript, react, vue, angular, html, css, jquery, canvas]
+backend:
+  [
+    python,
+    java,
+    node.js,
+    fastapi,
+    django,
+    flask,
+    spring boot,
+    "c#",
+    go,
+    ruby,
+    php,
+    scala,
+    rust,
+    ".net",
+    asp.net,
+    graphql,
+  ]
+mobile: [kotlin, swift]
+databases:
+  [postgresql, mysql, redis, mongodb, oracle, sqlite, sql, sql server, t-sql, snowflake, neo4j]
+cloud: [aws, gcp, azure]
+devops:
+  [kubernetes, docker, terraform, jenkins, ci/cd, ansible, nginx, linux, git, bash, powershell]
+data: [kafka, spark, hadoop, airflow, pandas, ssis, ssrs, ssas, elasticsearch, snowflake, python]
+bi: [power bi, excel, dynamics 365, sharepoint, vba, ssrs]
+pm: [agile, scrum, jira, kanban, confluence, project management, stakeholder management]
+
+# Re-seeded families: previously valid vocabulary but barely/never seeded, so
+# legitimate skills fell to the LLM (or to `other`). Curated seeds below give
+# the matcher deterministic same-family credit for the common cases (ADR 0021).
+networking:
+  [
+    tcp/ip,
+    dns,
+    dhcp,
+    vpn,
+    firewalls,
+    routing,
+    switching,
+    lan,
+    wan,
+    network administration,
+    voip,
+  ]
+ml:
+  [
+    machine learning,
+    deep learning,
+    pytorch,
+    tensorflow,
+    scikit-learn,
+    nlp,
+    computer vision,
+    keras,
+  ]
+qa:
+  [
+    selenium,
+    cypress,
+    playwright,
+    junit,
+    pytest,
+    test automation,
+    manual testing,
+    qa,
+    postman,
+  ]
+security:
+  [
+    penetration testing,
+    owasp,
+    siem,
+    encryption,
+    iam,
+    vulnerability management,
+    network security,
+  ]
+soft:
+  [
+    leadership,
+    communication,
+    teamwork,
+    problem solving,
+    time management,
+    collaboration,
+    mentoring,
+  ]
+
+# New families (the most-requested matching refinement): niche skills that were
+# landing in the excluded `other`/`domain` buckets and so earned no credit.
+edtech:
+  [
+    moodle,
+    learning management systems,
+    blackboard,
+    instructional design,
+    curriculum development,
+    articulate storyline,
+    captivate,
+    canvas,
+    d2l,
+    brightspace,
+    scorm,
+    e-learning,
+  ]
+support:
+  [
+    technical troubleshooting,
+    technical support,
+    help desk,
+    service desk,
+    desktop support,
+    ticketing,
+    itil,
+    incident management,
+    customer support,
+  ]
+hardware:
+  [
+    telecom equipment,
+    networking hardware,
+    voip,
+    cabling,
+    field service,
+    mitel,
+    pbx,
+    switches,
+    routers,
+  ]
+
+# Catch-all families: kept in the vocabulary so the LLM has a "none of the
+# above" target, but EXCLUDED from family credit (match_non_matchable_families).
+# No curated members — assignment is the LLM's last resort.
+domain: []
+other: []
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Derived families (ADR/ROADMAP A2) -- merged from
+# docs/process/skill-vocabulary/derived-families.yaml, derived from the
+# harmonized SFU JD corpus (jd-bank canonical_jds). Additive to the 19
+# software families above, which are unchanged. See that file's header for
+# corpus provenance/frequency-floor methodology per family.
+# ═══════════════════════════════════════════════════════════════════════════
+
+finance:
+  [
+    financial management,
+    financial administration,
+    financial analysis,
+    financial reporting,
+    financial policies,
+    budgeting,
+    budget management,
+    budget planning,
+    forecasting,
+    accounting,
+    professional accounting designation,
+    accounts payable,
+    accounts receivable,
+    payroll,
+    procurement,
+    purchasing,
+    contract management,
+    grant administration,
+    research funding,
+    audit,
+    internal controls,
+    reconciliation,
+    cost analysis,
+    revenue management,
+    endowment,
+    financial systems,
+  ]
+student_affairs:
+  [
+    student services,
+    academic advising,
+    student advising,
+    student recruitment,
+    student development,
+    student engagement,
+    enrollment management,
+    admissions,
+    admissions advising,
+    registration,
+    graduation,
+    convocation,
+    student information systems,
+    student records,
+    academic standing,
+    financial aid,
+    scholarships,
+    awards,
+    international student advising,
+    student conduct,
+    residence life,
+    orientation,
+    co-op education,
+    career services,
+    accessibility services,
+  ]
+academic_programs:
+  [
+    curriculum development,
+    program development,
+    program administration,
+    program coordination,
+    program evaluation,
+    academic policies,
+    academic regulations,
+    course scheduling,
+    timetabling,
+    accreditation,
+    program review,
+    learning outcomes,
+    teaching support,
+    academic integrity,
+    calendar administration,
+  ]
+research_admin:
+  [
+    research administration,
+    research ethics,
+    research grants,
+    grant writing,
+    funding applications,
+    tri-council,
+    research compliance,
+    knowledge mobilization,
+    research partnerships,
+    laboratory management,
+    data management plans,
+  ]
+human_resources:
+  [
+    human resources,
+    hr administration,
+    collective agreements,
+    labour relations,
+    employee relations,
+    recruitment,
+    hiring,
+    staff supervision,
+    performance management,
+    job evaluation,
+    classification,
+    onboarding,
+    workforce planning,
+    compensation,
+    benefits administration,
+    occupational health,
+    return to work,
+    union environment,
+    grievance,
+  ]
+communications:
+  [
+    written communication,
+    oral communication,
+    verbal communication,
+    presentation skills,
+    public relations,
+    media relations,
+    marketing,
+    marketing communications,
+    social media,
+    content management,
+    content development,
+    copywriting,
+    editing,
+    publications,
+    web content,
+    digital communications,
+    brand management,
+    storytelling,
+    internal communications,
+    community relations,
+    event planning,
+    event management,
+    event coordination,
+  ]
+governance_policy:
+  [
+    university policies,
+    policy development,
+    policy analysis,
+    policy interpretation,
+    regulations,
+    compliance,
+    governance,
+    risk management,
+    privacy,
+    fippa,
+    pipeda,
+    freedom of information,
+    records management,
+    information governance,
+    confidentiality,
+    emergency planning,
+    business continuity,
+    health and safety,
+    wcb,
+  ]
+leadership_management:
+  [
+    leadership,
+    strategic planning,
+    strategic thinking,
+    project management,
+    change management,
+    program management,
+    people management,
+    team leadership,
+    supervision,
+    mentoring,
+    coaching,
+    consultation,
+    stakeholder engagement,
+    stakeholder management,
+    external relations,
+    partnership development,
+    community engagement,
+    negotiation,
+    conflict resolution,
+    facilitation,
+    committee work,
+    vendor management,
+    process improvement,
+    continuous improvement,
+  ]
+analysis_reporting:
+  [
+    data analysis,
+    business analysis,
+    analytical reasoning,
+    quantitative analysis,
+    statistical analysis,
+    reporting,
+    dashboards,
+    data visualization,
+    requirements gathering,
+    business requirements,
+    process mapping,
+    needs assessment,
+    program assessment,
+    survey design,
+    environmental scan,
+    benchmarking,
+    forecasting models,
+  ]
+equity_indigenous:
+  [
+    equity diversity and inclusion,
+    edi,
+    anti-racism,
+    decolonization,
+    indigenization,
+    truth and reconciliation,
+    trc calls to action,
+    indigenous engagement,
+    indigenous relations,
+    cultural competency,
+    accessibility,
+    universal design,
+    accommodation,
+    human rights,
+  ]
+facilities_operations:
+  [
+    space planning,
+    facilities management,
+    campus planning,
+    capital projects,
+    building operations,
+    maintenance planning,
+    asset management,
+    logistics,
+    inventory management,
+    shipping and receiving,
+    fleet,
+    security operations,
+    access control,
+    sustainability,
+  ]
+interpersonal_core:
+  [
+    interpersonal skills,
+    organizational skills,
+    time management,
+    problem solving,
+    critical thinking,
+    attention to detail,
+    discretion,
+    judgement,
+    adaptability,
+    customer service,
+    client service,
+    teamwork,
+    collaboration,
+    initiative,
+    multitasking,
+    prioritization,
+  ]
+health_wellness:
+  [
+    athletic therapy,
+    injury prevention,
+    injury assessment,
+    counselling,
+    mental health support,
+    crisis intervention,
+    case management,
+    health promotion,
+    first aid,
+    clinical practice,
+    patient care,
+  ]

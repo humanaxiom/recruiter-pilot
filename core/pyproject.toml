@@ -1,0 +1,46 @@
+[project]
+name = "recruiter-assistant-core"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "ASYNC"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection idiom: Depends()/Security() in arg defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Security"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# No py.typed marker or stubs ship for these; asyncpg is typed via asyncpg-stubs.
+module = ["testcontainers.*", "arq.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+  # tests/smoke — drives the RUNNING stack over HTTP. Never collected by
+  # `make gates` (which targets tests/unit), because it needs a live
+  # deployment and a reachable LLM. Run it with scripts/smoke.sh.
+  "smoke: exercises the live product end to end; requires a running stack",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/worker/main.py"]  # worker entry covered by integration, not unit

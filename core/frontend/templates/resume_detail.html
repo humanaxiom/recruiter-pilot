@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Résumé{% endblock %}
+{#
+  Résumé detail (ADR-011/012/013/016). BLIND IS THE DEFAULT: the non-reveal
+  render (`revealed` is false/absent) prints ONLY redacted, non-PII structured
+  fields from `resume.parsed` — no `candidate.*`. Identity fields render in
+  EXACTLY ONE place: the reveal-gated block below (guarded on the `revealed`
+  flag), reached only via the audited `POST /resumes/<id>/reveal` action
+  (FU-1). The default GET never sets `revealed`, so a URL edit or prefetch
+  can never surface identity.
+#}
+{% set parsed = resume.parsed %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h1 style="margin:0">{{ resume.original_filename }}</h1>
+    <span class="pill pill-{{ resume.status }}">{{ resume.status }}</span>
+    {%- if parsed and parsed.degraded %}
+    <span class="pill pill-degraded">degraded</span>
+    {%- endif %}
+  </div>
+
+  {#
+    FU-7 §4 / ADR-030 — degraded-parse warning. Skills extraction fell back to
+    the deterministic keyword scan, so this résumé ranks on incomplete skills;
+    it is EXCLUDED from shortlists until re-parsed (via re-upload today). NON-PII
+    — renders regardless of blind/reveal state, exactly like the withdrawal
+    block below. Only rendered when `parsed.degraded` so a clean parse carries
+    no "degraded" text at all.
+  #}
+  {% if parsed and parsed.degraded %}
+  <div class="degraded-banner">
+    <span class="pill pill-degraded">⚠ degraded parse</span>
+    <p>
+      {{ parsed.degradation_reason
+         or 'Skills extraction failed (AI); using keyword-scan fallback.' }}
+      Ranked on keyword-scan skills only; this résumé is excluded from
+      shortlists until re-parsed.
+    </p>
+  </div>
+  {% endif %}
+
+  {% if revealed %}
+  {# The ONE place identity is rendered — reached only via the audited reveal. #}
+  <div class="reveal-block">
+    <p class="reveal-notice">Identity revealed — recorded in the audit log.</p>
+    <dl class="identity">
+      {% if resume.candidate.name %}
+      <dt>Name</dt><dd>{{ resume.candidate.name }}</dd>{% endif %}
+      {% if resume.candidate.email %}
+      <dt>Email</dt><dd>{{ resume.candidate.email }}</dd>{% endif %}
+      {% if resume.candidate.phone %}
+      <dt>Phone</dt><dd>{{ resume.candidate.phone }}</dd>{% endif %}
+      {% if resume.candidate.location %}
+      <dt>Location</dt><dd>{{ resume.candidate.location }}</dd>{% endif %}
+    </dl>
+  </div>
+  {% elif resume.blinded %}
+  <div class="blind-banner">
+    <span>Identity hidden for blind review — employers/schools shown as generic
+      labels.</span>
+    {% if is_writer %}
+    <form method="post"
+          action="{{ url_for('resume_reveal', resume_id=resume.id) }}"
+          style="display:inline">
+      {# FU-4/D4: session-bound one-shot anti-forgery token, minted for THIS
+         résumé id. A cross-site auto-submit cannot read it, so it cannot forge
+         an audited reveal; and it is valid only for this résumé's reveal. #}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="btn btn-secondary btn-sm">Reveal identity
+        (audited)</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {#
+    FU-8/ADR-026 — résumé withdrawal lifecycle. Deliberately OUTSIDE the
+    `{% if revealed %}...{% elif resume.blinded %}...{% endif %}` identity
+    block above: blind posture is unchanged by this feature, so the
+    withdraw/reinstate control must render regardless of reveal state and
+    must never require (or imply) a reveal. Carries its OWN one-shot CSRF
+    token (`action="withdraw"`), independent of the reveal form's token
+    above even though both are minted for the SAME résumé id.
+  #}
+  {% if resume.withdrawn_at %}
+  <div class="withdrawn-block">
+    <span class="pill pill-withdrawn">Withdrawn</span>
+    {% if resume.withdrawal_reason %}
+    <p class="muted">Reason: {{ resume.withdrawal_reason }}</p>
+    {% endif %}
+    {% if is_writer %}
+    <form method="post"
+          action="{{ url_for('resume_reinstate', resume_id=resume.id) }}"
+          style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ withdraw_csrf_token }}">
+      <button type="submit" class="btn btn-secondary btn-sm">Reinstate</button>
+    </form>
+    {% endif %}
+  </div>
+  {% elif is_writer %}
+  <div class="withdraw-block">
+    {# D1 = option C follow-on. The route has always read a `reason` form
+       field and the backend has always accepted one (`WithdrawRequest.reason`,
+       max_length=500) — but no form ever rendered the input, so every
+       withdrawal in the live database recorded `None`. The audited-reveal
+       control this branch adds would have had nothing to reveal, ever.
+
+       `maxlength` mirrors the backend cap deliberately: a note is written once,
+       at the moment of a decision someone may later be asked to justify, and
+       losing it to a 422 on submit is not recoverable by retrying.
+
+       The disclosure line is not decoration. D1's memo turns on the asymmetry
+       that prose already recorded was typed under a withheld expectation;
+       option C stays closed for those rows and opens new ones deliberately,
+       which only holds if the person typing a NEW note is told an auditor can
+       ask to see it. #}
+    <form method="post"
+          action="{{ url_for('resume_withdraw', resume_id=resume.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ withdraw_csrf_token }}">
+      <label class="label" for="withdraw-reason">Reason (optional)</label>
+      <input class="input" type="text" id="withdraw-reason" name="reason"
+             maxlength="500"
+             placeholder="e.g. candidate asked to be removed">
+      <p class="hint">
+        Recorded against this withdrawal. It is not shown in the access record
+        by default, but an auditor can ask to see it — and that request is
+        logged under their name.
+      </p>
+      <button type="submit" class="btn btn-danger btn-sm">Withdraw candidate</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if parsed and parsed.summary %}
+  <p class="muted">{{ parsed.summary }}</p>
+  {% endif %}
+  {% if parsed and parsed.total_years_experience %}
+  <p class="hint">{{ parsed.total_years_experience }}+ years total experience.</p>
+  {% endif %}
+
+  {# Candidate→jobs (FU-3 S5). "Find matching jobs" is a POST form (a
+     side-effecting trigger that enqueues reverse_match_job must never be a
+     prefetchable GET), swapping the pollable results fragment into the
+     container below. A plain GET link to VIEW already-computed results is kept
+     alongside (a read is a safe GET). #}
+  <p class="match-actions">
+    {% if is_writer %}
+    <form method="post"
+          action="{{ url_for('resume_match_jobs', resume_id=resume.id) }}"
+          hx-post="{{ url_for('resume_match_jobs', resume_id=resume.id) }}"
+          hx-target="#match-results-cards"
+          hx-swap="outerHTML"
+          style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_page_token }}">
+      <button type="submit" class="btn btn-primary btn-sm">Find matching jobs</button>
+    </form>
+    {% endif %}
+    <a class="btn btn-secondary btn-sm"
+       href="{{ url_for('resume_match_results', resume_id=resume.id) }}">View match
+       results</a>
+  </p>
+  {# HTMX swap target for the "Find matching jobs" trigger — the returned
+     fragment polls itself until the ranked jobs land. #}
+  <div id="match-results-cards"></div>
+</div>
+
+{% if parsed %}
+{# ── skills ─────────────────────────────────────────────────────────── #}
+<div class="card">
+  <h2>Skills</h2>
+  {% if parsed.skills %}
+  <p class="recency-legend hint">
+    Recency:
+    <span class="chip chip-recency-current">current</span>
+    <span class="chip chip-recency-aging">aging</span>
+    <span class="chip chip-recency-stale">stale</span>
+  </p>
+  <div class="chips">
+    {% for skill in parsed.skills %}
+    {% set ly = skill.last_used_year %}
+    {% if ly %}
+    {% set age = current_year - ly %}
+    {% if age <= 2 %}{% set bucket = 'current' %}
+    {% elif age <= 5 %}{% set bucket = 'aging' %}
+    {% else %}{% set bucket = 'stale' %}{% endif %}
+    <span class="chip chip-recency-{{ bucket }}">{{ skill.name }}
+      <span class="chip-year">· {{ ly }}</span></span>
+    {% else %}
+    <span class="chip chip-plain">{{ skill.name }}</span>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No skills extracted.</p>
+  {% endif %}
+</div>
+
+{# ── experience ─────────────────────────────────────────────────────── #}
+<div class="card">
+  <h2>Experience</h2>
+  {% if parsed.experience %}
+  <ul class="list">
+    {% for exp in parsed.experience %}
+    <li>
+      <div><strong>{{ exp.title }}</strong> · {{ exp.company }}</div>
+      <div class="muted">
+        {{ exp.start or '—' }}{% if exp.end or exp.is_current %} –
+        {{ 'present' if exp.is_current else exp.end }}{% endif %}
+      </div>
+      {% if exp.bullets %}
+      <ul class="bullets">
+        {% for b in exp.bullets %}
+        <li>{{ b.text }}
+          {% if b.chunk_id %}
+          <span class="muted chunks">[{{ b.chunk_id }}]</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No experience extracted.</p>
+  {% endif %}
+</div>
+
+{# ── education ──────────────────────────────────────────────────────── #}
+<div class="card">
+  <h2>Education</h2>
+  {% if parsed.education %}
+  <ul class="list">
+    {% for ed in parsed.education %}
+    <li>
+      <strong>{{ ed.degree }}</strong> · {{ ed.institution }}
+      {% if ed.field %} · {{ ed.field }}{% endif %}
+      {% if ed.year %} <span class="muted">({{ ed.year }})</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No education extracted.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── cover letter ───────────────────────────────────────────────────── #}
+{% if resume.cover_letter_text or resume.cover_letter_parsed %}
+{% set cl = resume.cover_letter_parsed %}
+<div class="card">
+  <h2>Cover letter</h2>
+  {% if cl %}
+  {% if cl.sentiment %}
+  <p><span class="pill pill-gray">sentiment: {{ cl.sentiment }}</span></p>
+  {% endif %}
+  {% if cl.themes %}
+  <div class="chips">
+    {% for theme in cl.themes %}
+    <span class="chip chip-plain">{{ theme }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if cl.key_claims %}
+  <ul class="list">
+    {% for claim in cl.key_claims %}
+    <li>{{ claim }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endif %}
+  {% if resume.cover_letter_text %}
+  <p class="cover-text">{{ resume.cover_letter_text }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── source chunks (already redacted server-side) ───────────────────── #}
+{% if parsed and parsed.chunks %}
+<div class="card">
+  <details class="evidence">
+    <summary>Source chunks</summary>
+    <ul class="list">
+      {% for chunk in parsed.chunks %}
+      <li>
+        <span class="muted chunks">{{ chunk.id }}
+          · {{ chunk.section }}</span>
+        <div>{{ chunk.text }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+</div>
+{% endif %}
+{% endblock %}

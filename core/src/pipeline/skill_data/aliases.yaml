@@ -1,0 +1,698 @@
+# Hand-curated skill aliases. Each canonical name maps to a list of
+# variants the LLM is likely to produce. _basic_normalise looks here
+# BEFORE the vector-search fallback.
+#
+# Conventions:
+#   - canonical name is lower-case; we recase for display elsewhere
+#   - keep aliases lower-cased and trimmed
+#   - include the canonical name itself in `aliases` for round-trip safety
+#
+# Add freely. The Phase-6 matching quality compounds from this list.
+
+- canonical: javascript
+  aliases: [javascript, js, ecmascript, java script]
+- canonical: typescript
+  aliases: [typescript, ts]
+- canonical: python
+  aliases: [python, python3, py]
+- canonical: java
+  aliases: [java]
+- canonical: react
+  aliases: [react, reactjs, react.js, react js]
+- canonical: vue
+  aliases: [vue, vue.js, vuejs]
+- canonical: angular
+  aliases: [angular, angular.js, angularjs]
+- canonical: node.js
+  aliases: [node.js, node, nodejs]
+- canonical: postgresql
+  # "psql" added (Phase 4b spelling-recall fix): the Postgres CLI tool name,
+  # commonly used on a résumé/JD as shorthand for the database itself —
+  # neither a version variant nor a parenthetical, so normalisation alone
+  # can't recover it; a single, high-value alias.
+  aliases: [postgresql, postgres, pgsql, psql]
+- canonical: mysql
+  aliases: [mysql, my sql]
+- canonical: kubernetes
+  aliases: [kubernetes, k8s, kube]
+- canonical: docker
+  # "docker compose" added (Phase 4b spelling-recall fix): the multi-
+  # container orchestration tool shipped BY Docker, commonly listed as a
+  # single résumé/JD line for what is, for skill-matching purposes, the same
+  # underlying containerization skill. "containerization" added (post-4b
+  # security fix — paren-split skill inflation gate): the bare word is
+  # itself a legitimate, common résumé/JD spelling for the same skill (see
+  # "Containerization (Docker)" in SPELLING_RECALL_FIXTURES) — registering
+  # it as a vocab alias lets it resolve at the ordinary outer-full-resolve
+  # step instead of needing the (now-gated) parenthetical-content fallback.
+  aliases: [docker, "docker compose", containerization]
+- canonical: terraform
+  aliases: [terraform, tf]
+- canonical: aws
+  aliases: [aws, amazon web services]
+- canonical: gcp
+  aliases: [gcp, google cloud, google cloud platform]
+- canonical: azure
+  aliases: [azure, microsoft azure]
+- canonical: redis
+  aliases: [redis]
+- canonical: neo4j
+  aliases: [neo4j, cypher]
+- canonical: fastapi
+  aliases: [fastapi, fast api]
+- canonical: django
+  aliases: [django]
+- canonical: flask
+  aliases: [flask]
+- canonical: spring boot
+  aliases: [spring boot, springboot, spring]
+- canonical: kafka
+  # "kafka streams" added (Phase 4b spelling-recall fix): Kafka's own
+  # stream-processing library — same ecosystem/skill for matching purposes,
+  # not a version or parenthetical variant normalisation could recover.
+  aliases: [kafka, apache kafka, "kafka streams"]
+- canonical: elasticsearch
+  aliases: [elasticsearch, elastic search, elastic]
+
+# --- Languages ---
+- canonical: c#
+  aliases: ["c#", csharp, "c sharp"]
+- canonical: c++
+  aliases: ["c++", cpp]
+- canonical: go
+  aliases: [golang, "go lang"]   # not bare "go" — too noisy
+- canonical: ruby
+  aliases: [ruby]
+- canonical: php
+  aliases: [php]
+- canonical: scala
+  aliases: [scala]
+- canonical: rust
+  aliases: [rust]
+- canonical: kotlin
+  aliases: [kotlin]
+- canonical: swift
+  aliases: [swift]
+- canonical: sql
+  aliases: [sql]
+- canonical: bash
+  aliases: [bash, shell scripting, shell]
+- canonical: powershell
+  aliases: [powershell, power shell]
+- canonical: vba
+  aliases: [vba, "visual basic for applications"]
+
+# --- Microsoft / .NET / enterprise stack ---
+- canonical: .net
+  aliases: [".net", dotnet, "dot net", ".net framework", ".net core"]
+- canonical: asp.net
+  aliases: ["asp.net", aspnet, "asp.net mvc", "asp.net core"]
+- canonical: sql server
+  aliases: ["sql server", mssql, "microsoft sql server", "ms sql"]
+- canonical: t-sql
+  aliases: [t-sql, tsql, "transact-sql"]
+- canonical: sharepoint
+  aliases: [sharepoint, "share point", "sharepoint online"]
+- canonical: ssis
+  aliases: [ssis, "sql server integration services"]
+- canonical: ssrs
+  aliases: [ssrs, "sql server reporting services"]
+- canonical: ssas
+  aliases: [ssas, "sql server analysis services"]
+- canonical: power bi
+  aliases: ["power bi", powerbi]
+- canonical: excel
+  aliases: [excel, "microsoft excel", "ms excel"]
+- canonical: dynamics 365
+  aliases: ["dynamics 365", "dynamics crm", "ms dynamics"]
+
+# --- Web / frontend ---
+- canonical: html
+  aliases: [html, html5]
+- canonical: css
+  aliases: [css, css3]
+- canonical: graphql
+  aliases: [graphql, "graph ql"]
+- canonical: jquery
+  aliases: [jquery]
+- canonical: rest api design
+  # New canonical (Phase 4b spelling-recall fix — judgement call, kept
+  # tight): the eval JD requires "REST API design" verbatim, but a résumé
+  # commonly drops "design" and/or pluralises "API" — none of that is a
+  # version or parenthetical variant `_basic_normalise` can strip, so these
+  # are real vocabulary spellings, not a normalisation-rule fix. Not a full
+  # 8-15-alias expansion — just the handful of spellings actually measured
+  # missing (REST APIs / RESTful APIs / REST API).
+  aliases:
+    ["rest api design", "rest api", "rest apis", "restful api", "restful apis"]
+
+# --- Data / infra ---
+- canonical: mongodb
+  aliases: [mongodb, mongo]
+- canonical: oracle
+  aliases: [oracle, "oracle db", "oracle database"]
+- canonical: sqlite
+  aliases: [sqlite]
+- canonical: snowflake
+  aliases: [snowflake]
+- canonical: spark
+  aliases: [spark, "apache spark", pyspark]
+- canonical: hadoop
+  aliases: [hadoop]
+- canonical: airflow
+  aliases: [airflow, "apache airflow"]
+- canonical: pandas
+  aliases: [pandas]
+- canonical: linux
+  aliases: [linux, unix]
+- canonical: git
+  aliases: [git]
+- canonical: jenkins
+  aliases: [jenkins]
+- canonical: ci/cd
+  aliases: ["ci/cd", cicd, "ci cd", "continuous integration"]
+- canonical: ansible
+  aliases: [ansible]
+- canonical: nginx
+  aliases: [nginx]
+
+# --- real skills that are also common personal names — kept for recall;
+# see ADR-008 residual #13 on vocab/name collision. ("julia" the language,
+# "hudson" as in Hudson/Jenkins.)
+- canonical: julia
+  aliases: [julia]
+- canonical: hudson
+  aliases: [hudson]
+
+# --- Ways of working ---
+- canonical: agile
+  aliases: [agile]
+- canonical: scrum
+  aliases: [scrum]
+- canonical: jira
+  aliases: [jira]
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Derived families (ADR/ROADMAP A2) -- merged from
+# docs/process/skill-vocabulary/derived-families.yaml (13 families, 234
+# terms, derived from the harmonized SFU JD corpus). Each entry below exists
+# only for round-trip safety (canonical present in its own `aliases` list) so
+# the deterministic résumé-text scanner (skills.py:211-214) can find these
+# terms -- categories.yaml membership alone is not enough (see that file's
+# "Derived families" section for the family assignments). No extra spelling
+# variants added here; that is a future spelling-recall pass, not this merge.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# --- Derived family: finance ---
+- canonical: financial management
+  aliases: [financial management]
+- canonical: financial administration
+  aliases: [financial administration]
+- canonical: financial analysis
+  aliases: [financial analysis]
+- canonical: financial reporting
+  aliases: [financial reporting]
+- canonical: financial policies
+  aliases: [financial policies]
+- canonical: budgeting
+  aliases: [budgeting]
+- canonical: budget management
+  aliases: [budget management]
+- canonical: budget planning
+  aliases: [budget planning]
+- canonical: forecasting
+  aliases: [forecasting]
+- canonical: accounting
+  aliases: [accounting]
+- canonical: professional accounting designation
+  aliases: [professional accounting designation]
+- canonical: accounts payable
+  aliases: [accounts payable]
+- canonical: accounts receivable
+  aliases: [accounts receivable]
+- canonical: payroll
+  aliases: [payroll]
+- canonical: procurement
+  aliases: [procurement]
+- canonical: purchasing
+  aliases: [purchasing]
+- canonical: contract management
+  aliases: [contract management]
+- canonical: grant administration
+  aliases: [grant administration]
+- canonical: research funding
+  aliases: [research funding]
+- canonical: audit
+  aliases: [audit]
+- canonical: internal controls
+  aliases: [internal controls]
+- canonical: reconciliation
+  aliases: [reconciliation]
+- canonical: cost analysis
+  aliases: [cost analysis]
+- canonical: revenue management
+  aliases: [revenue management]
+- canonical: endowment
+  aliases: [endowment]
+- canonical: financial systems
+  aliases: [financial systems]
+
+# --- Derived family: student_affairs ---
+- canonical: student services
+  aliases: [student services]
+- canonical: academic advising
+  aliases: [academic advising]
+- canonical: student advising
+  aliases: [student advising]
+- canonical: student recruitment
+  aliases: [student recruitment]
+- canonical: student development
+  aliases: [student development]
+- canonical: student engagement
+  aliases: [student engagement]
+- canonical: enrollment management
+  aliases: [enrollment management]
+- canonical: admissions
+  aliases: [admissions]
+- canonical: admissions advising
+  aliases: [admissions advising]
+- canonical: registration
+  aliases: [registration]
+- canonical: graduation
+  aliases: [graduation]
+- canonical: convocation
+  aliases: [convocation]
+- canonical: student information systems
+  aliases: [student information systems]
+- canonical: student records
+  aliases: [student records]
+- canonical: academic standing
+  aliases: [academic standing]
+- canonical: financial aid
+  aliases: [financial aid]
+- canonical: scholarships
+  aliases: [scholarships]
+- canonical: awards
+  aliases: [awards]
+- canonical: international student advising
+  aliases: [international student advising]
+- canonical: student conduct
+  aliases: [student conduct]
+- canonical: residence life
+  aliases: [residence life]
+- canonical: orientation
+  aliases: [orientation]
+- canonical: co-op education
+  aliases: [co-op education]
+- canonical: career services
+  aliases: [career services]
+- canonical: accessibility services
+  aliases: [accessibility services]
+
+# --- Derived family: academic_programs ---
+- canonical: curriculum development
+  aliases: [curriculum development]
+- canonical: program development
+  aliases: [program development]
+- canonical: program administration
+  aliases: [program administration]
+- canonical: program coordination
+  aliases: [program coordination]
+- canonical: program evaluation
+  aliases: [program evaluation]
+- canonical: academic policies
+  aliases: [academic policies]
+- canonical: academic regulations
+  aliases: [academic regulations]
+- canonical: course scheduling
+  aliases: [course scheduling]
+- canonical: timetabling
+  aliases: [timetabling]
+- canonical: accreditation
+  aliases: [accreditation]
+- canonical: program review
+  aliases: [program review]
+- canonical: learning outcomes
+  aliases: [learning outcomes]
+- canonical: teaching support
+  aliases: [teaching support]
+- canonical: academic integrity
+  aliases: [academic integrity]
+- canonical: calendar administration
+  aliases: [calendar administration]
+
+# --- Derived family: research_admin ---
+- canonical: research administration
+  aliases: [research administration]
+- canonical: research ethics
+  aliases: [research ethics]
+- canonical: research grants
+  aliases: [research grants]
+- canonical: grant writing
+  aliases: [grant writing]
+- canonical: funding applications
+  aliases: [funding applications]
+- canonical: tri-council
+  aliases: [tri-council]
+- canonical: research compliance
+  aliases: [research compliance]
+- canonical: knowledge mobilization
+  aliases: [knowledge mobilization]
+- canonical: research partnerships
+  aliases: [research partnerships]
+- canonical: laboratory management
+  aliases: [laboratory management]
+- canonical: data management plans
+  aliases: [data management plans]
+
+# --- Derived family: human_resources ---
+- canonical: human resources
+  aliases: [human resources]
+- canonical: hr administration
+  aliases: [hr administration]
+- canonical: collective agreements
+  aliases: [collective agreements]
+- canonical: labour relations
+  aliases: [labour relations]
+- canonical: employee relations
+  aliases: [employee relations]
+- canonical: recruitment
+  aliases: [recruitment]
+- canonical: hiring
+  aliases: [hiring]
+- canonical: staff supervision
+  aliases: [staff supervision]
+- canonical: performance management
+  aliases: [performance management]
+- canonical: job evaluation
+  aliases: [job evaluation]
+- canonical: classification
+  aliases: [classification]
+- canonical: onboarding
+  aliases: [onboarding]
+- canonical: workforce planning
+  aliases: [workforce planning]
+- canonical: compensation
+  aliases: [compensation]
+- canonical: benefits administration
+  aliases: [benefits administration]
+- canonical: occupational health
+  aliases: [occupational health]
+- canonical: return to work
+  aliases: [return to work]
+- canonical: union environment
+  aliases: [union environment]
+- canonical: grievance
+  aliases: [grievance]
+
+# --- Derived family: communications ---
+- canonical: written communication
+  aliases: [written communication]
+- canonical: oral communication
+  aliases: [oral communication]
+- canonical: verbal communication
+  aliases: [verbal communication]
+- canonical: presentation skills
+  aliases: [presentation skills]
+- canonical: public relations
+  aliases: [public relations]
+- canonical: media relations
+  aliases: [media relations]
+- canonical: marketing
+  aliases: [marketing]
+- canonical: marketing communications
+  aliases: [marketing communications]
+- canonical: social media
+  aliases: [social media]
+- canonical: content management
+  aliases: [content management]
+- canonical: content development
+  aliases: [content development]
+- canonical: copywriting
+  aliases: [copywriting]
+- canonical: editing
+  aliases: [editing]
+- canonical: publications
+  aliases: [publications]
+- canonical: web content
+  aliases: [web content]
+- canonical: digital communications
+  aliases: [digital communications]
+- canonical: brand management
+  aliases: [brand management]
+- canonical: storytelling
+  aliases: [storytelling]
+- canonical: internal communications
+  aliases: [internal communications]
+- canonical: community relations
+  aliases: [community relations]
+- canonical: event planning
+  aliases: [event planning]
+- canonical: event management
+  aliases: [event management]
+- canonical: event coordination
+  aliases: [event coordination]
+
+# --- Derived family: governance_policy ---
+- canonical: university policies
+  aliases: [university policies]
+- canonical: policy development
+  aliases: [policy development]
+- canonical: policy analysis
+  aliases: [policy analysis]
+- canonical: policy interpretation
+  aliases: [policy interpretation]
+- canonical: regulations
+  aliases: [regulations]
+- canonical: compliance
+  aliases: [compliance]
+- canonical: governance
+  aliases: [governance]
+- canonical: risk management
+  aliases: [risk management]
+- canonical: privacy
+  aliases: [privacy]
+- canonical: fippa
+  aliases: [fippa]
+- canonical: pipeda
+  aliases: [pipeda]
+- canonical: freedom of information
+  aliases: [freedom of information]
+- canonical: records management
+  aliases: [records management]
+- canonical: information governance
+  aliases: [information governance]
+- canonical: confidentiality
+  aliases: [confidentiality]
+- canonical: emergency planning
+  aliases: [emergency planning]
+- canonical: business continuity
+  aliases: [business continuity]
+- canonical: health and safety
+  aliases: [health and safety]
+- canonical: wcb
+  aliases: [wcb]
+
+# --- Derived family: leadership_management ---
+- canonical: leadership
+  aliases: [leadership]
+- canonical: strategic planning
+  aliases: [strategic planning]
+- canonical: strategic thinking
+  aliases: [strategic thinking]
+- canonical: project management
+  aliases: [project management]
+- canonical: change management
+  aliases: [change management]
+- canonical: program management
+  aliases: [program management]
+- canonical: people management
+  aliases: [people management]
+- canonical: team leadership
+  aliases: [team leadership]
+- canonical: supervision
+  aliases: [supervision]
+- canonical: mentoring
+  aliases: [mentoring]
+- canonical: coaching
+  aliases: [coaching]
+- canonical: consultation
+  aliases: [consultation]
+- canonical: stakeholder engagement
+  aliases: [stakeholder engagement]
+- canonical: stakeholder management
+  aliases: [stakeholder management]
+- canonical: external relations
+  aliases: [external relations]
+- canonical: partnership development
+  aliases: [partnership development]
+- canonical: community engagement
+  aliases: [community engagement]
+- canonical: negotiation
+  aliases: [negotiation]
+- canonical: conflict resolution
+  aliases: [conflict resolution]
+- canonical: facilitation
+  aliases: [facilitation]
+- canonical: committee work
+  aliases: [committee work]
+- canonical: vendor management
+  aliases: [vendor management]
+- canonical: process improvement
+  aliases: [process improvement]
+- canonical: continuous improvement
+  aliases: [continuous improvement]
+
+# --- Derived family: analysis_reporting ---
+- canonical: data analysis
+  aliases: [data analysis]
+- canonical: business analysis
+  aliases: [business analysis]
+- canonical: analytical reasoning
+  aliases: [analytical reasoning]
+- canonical: quantitative analysis
+  aliases: [quantitative analysis]
+- canonical: statistical analysis
+  aliases: [statistical analysis]
+- canonical: reporting
+  aliases: [reporting]
+- canonical: dashboards
+  aliases: [dashboards]
+- canonical: data visualization
+  aliases: [data visualization]
+- canonical: requirements gathering
+  aliases: [requirements gathering]
+- canonical: business requirements
+  aliases: [business requirements]
+- canonical: process mapping
+  aliases: [process mapping]
+- canonical: needs assessment
+  aliases: [needs assessment]
+- canonical: program assessment
+  aliases: [program assessment]
+- canonical: survey design
+  aliases: [survey design]
+- canonical: environmental scan
+  aliases: [environmental scan]
+- canonical: benchmarking
+  aliases: [benchmarking]
+- canonical: forecasting models
+  aliases: [forecasting models]
+
+# --- Derived family: equity_indigenous ---
+- canonical: equity diversity and inclusion
+  aliases: [equity diversity and inclusion]
+- canonical: edi
+  aliases: [edi]
+- canonical: anti-racism
+  aliases: [anti-racism]
+- canonical: decolonization
+  aliases: [decolonization]
+- canonical: indigenization
+  aliases: [indigenization]
+- canonical: truth and reconciliation
+  aliases: [truth and reconciliation]
+- canonical: trc calls to action
+  aliases: [trc calls to action]
+- canonical: indigenous engagement
+  aliases: [indigenous engagement]
+- canonical: indigenous relations
+  aliases: [indigenous relations]
+- canonical: cultural competency
+  aliases: [cultural competency]
+- canonical: accessibility
+  aliases: [accessibility]
+- canonical: universal design
+  aliases: [universal design]
+- canonical: accommodation
+  aliases: [accommodation]
+- canonical: human rights
+  aliases: [human rights]
+
+# --- Derived family: facilities_operations ---
+- canonical: space planning
+  aliases: [space planning]
+- canonical: facilities management
+  aliases: [facilities management]
+- canonical: campus planning
+  aliases: [campus planning]
+- canonical: capital projects
+  aliases: [capital projects]
+- canonical: building operations
+  aliases: [building operations]
+- canonical: maintenance planning
+  aliases: [maintenance planning]
+- canonical: asset management
+  aliases: [asset management]
+- canonical: logistics
+  aliases: [logistics]
+- canonical: inventory management
+  aliases: [inventory management]
+- canonical: shipping and receiving
+  aliases: [shipping and receiving]
+- canonical: fleet
+  aliases: [fleet]
+- canonical: security operations
+  aliases: [security operations]
+- canonical: access control
+  aliases: [access control]
+- canonical: sustainability
+  aliases: [sustainability]
+
+# --- Derived family: interpersonal_core ---
+- canonical: interpersonal skills
+  aliases: [interpersonal skills]
+- canonical: organizational skills
+  aliases: [organizational skills]
+- canonical: time management
+  aliases: [time management]
+- canonical: problem solving
+  aliases: [problem solving]
+- canonical: critical thinking
+  aliases: [critical thinking]
+- canonical: attention to detail
+  aliases: [attention to detail]
+- canonical: discretion
+  aliases: [discretion]
+- canonical: judgement
+  aliases: [judgement]
+- canonical: adaptability
+  aliases: [adaptability]
+- canonical: customer service
+  aliases: [customer service]
+- canonical: client service
+  aliases: [client service]
+- canonical: teamwork
+  aliases: [teamwork]
+- canonical: collaboration
+  aliases: [collaboration]
+- canonical: initiative
+  aliases: [initiative]
+- canonical: multitasking
+  aliases: [multitasking]
+- canonical: prioritization
+  aliases: [prioritization]
+
+# --- Derived family: health_wellness ---
+- canonical: athletic therapy
+  aliases: [athletic therapy]
+- canonical: injury prevention
+  aliases: [injury prevention]
+- canonical: injury assessment
+  aliases: [injury assessment]
+- canonical: counselling
+  aliases: [counselling]
+- canonical: mental health support
+  aliases: [mental health support]
+- canonical: crisis intervention
+  aliases: [crisis intervention]
+- canonical: case management
+  aliases: [case management]
+- canonical: health promotion
+  aliases: [health promotion]
+- canonical: first aid
+  aliases: [first aid]
+- canonical: clinical practice
+  aliases: [clinical practice]
+- canonical: patient care
+  aliases: [patient care]

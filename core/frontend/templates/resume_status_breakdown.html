@@ -1,0 +1,28 @@
+{#
+  HTMX fragment (ADR-026 decision 5/FU-8) — the per-job résumé status
+  breakdown widget. Renders the 5-bucket counts (uploaded/parsing/parsed/
+  failed/withdrawn) the backend returns from `GET /jobs/<id>/resume-status`.
+  Renders cleanly (all zeros) for a job with no résumés at all — `breakdown`
+  is a plain dict, so `.get(key, 0)` never crashes on a missing bucket.
+
+  FU-7 §4 / ADR-030: `degraded` is a SUB-count of `parsed` (degraded ⊆ parsed),
+  shown inline on the Parsed row as "N parsed (M degraded)" — never a peer
+  bucket. Always rendered (even at zero) so the widget consistently names the
+  degraded surface.
+#}
+<div id="resume-status-breakdown">
+  <ul class="status-breakdown">
+    <li><span class="status-label">Uploaded</span>
+      <span class="status-count">{{ breakdown.get('uploaded', 0) }}</span></li>
+    <li><span class="status-label">Parsing</span>
+      <span class="status-count">{{ breakdown.get('parsing', 0) }}</span></li>
+    <li><span class="status-label">Parsed</span>
+      <span class="status-count">{{ breakdown.get('parsed', 0) }}</span>
+      <span class="status-degraded muted">({{ breakdown.get('degraded', 0) }}
+        degraded)</span></li>
+    <li><span class="status-label">Failed</span>
+      <span class="status-count">{{ breakdown.get('failed', 0) }}</span></li>
+    <li><span class="status-label">Withdrawn</span>
+      <span class="status-count">{{ breakdown.get('withdrawn', 0) }}</span></li>
+  </ul>
+</div>

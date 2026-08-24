@@ -1,0 +1,19 @@
+Evaluate the candidate against these {{ requirements|length }} requirements.
+
+Job title: {{ job_title }}
+
+Requirements:
+{% for req in requirements %}
+{{ loop.index }}. {{ req }}
+{% endfor %}
+
+Candidate resume chunks (cite by id):
+
+{% for chunk in chunks %}
+--- chunk {{ chunk.id }} (section: {{ chunk.section }}) ---
+{{ chunk.text }}
+
+{% endfor %}
+--- end ---
+
+Return the JSON.

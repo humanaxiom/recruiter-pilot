@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make gates*)",
+      "Bash(pytest*)",
+      "Bash(git*)",
+      "Bash(docker compose*)",
+      "Bash(curl localhost:8000/*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git commit* main)",
+      "Read(.env)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'B=$(git branch --show-current); [[ \"$B\" != \"main\" ]] || { echo \"BLOCKED: no commits to main\"; exit 2; }'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cd core && ruff check --fix --quiet . 2>/dev/null; true'"
+          }
+        ]
+      }
+    ]
+  }
+}
