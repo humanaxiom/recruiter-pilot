@@ -87,6 +87,17 @@ once pushed 99 MiB of real résumés to a public remote.
 There is no usable Python on a typical dev host here — `verify.sh` runs the real
 Makefile targets in a container so the gate cannot drift from CI.
 
+**GitHub Actions is currently blocked on billing for this org**, and that is a
+consequence of this repo being private: public repositories get unlimited free
+Actions minutes, private ones are billed. The first push returned *"the job was
+not started because recent account payments have failed or your spending limit
+needs to be increased."* Until that is resolved, **`./scripts/verify.sh all` is
+the authority** — it runs the same Makefile targets CI does, which is why the
+Makefile is the single source of truth. Do not read a red CI badge here as a
+broken tree without checking the annotation first. `ci.yml` has
+`workflow_dispatch` so an operator can re-run the suite once billing clears,
+without needing a new commit.
+
 ### 7. Never diagnose the model on a contended GPU
 
 Check `GET /api/ps` on the inference host first — **and again during a long run**.
