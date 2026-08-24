@@ -1,0 +1,782 @@
+[
+  {
+    "resume_file": "001_arden_osei_resume.pdf",
+    "candidate_name": "Arden Osei",
+    "email": "arden.osei@example.invalid",
+    "phone": "555-0110",
+    "coverage": "weak",
+    "skills_matched": "4",
+    "source_jd": "20190825_00126035^00138583_JDFN_APSA_20260624.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "002_lennox_lindgren_resume.pdf",
+    "candidate_name": "Lennox Lindgren",
+    "email": "lennox.lindgren@example.invalid",
+    "phone": "555-0101",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20190827_00000694^00138457_JDFN_APSA_20260515.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "003_yara_baptiste_resume.pdf",
+    "candidate_name": "Yara Baptiste",
+    "email": "yara.baptiste@example.invalid",
+    "phone": "555-0114",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20200228_00000694^00138457_JDFN_APSA_20260515.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "004_sasha_balogun_resume.pdf",
+    "candidate_name": "Sasha Balogun",
+    "email": "sasha.balogun@example.invalid",
+    "phone": "555-0158",
+    "coverage": "weak",
+    "skills_matched": "6",
+    "source_jd": "20201213_00121694^00138506_JDFN_APSA_20260527.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "005_kai_novak_resume.pdf",
+    "candidate_name": "Kai Novak",
+    "email": "kai.novak@example.invalid",
+    "phone": "555-0171",
+    "coverage": "strong",
+    "skills_matched": "12",
+    "source_jd": "20221001_00123563^00138590_APSA_JDFN_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "006_noor_farrow_resume.pdf",
+    "candidate_name": "Noor Farrow",
+    "email": "noor.farrow@example.invalid",
+    "phone": "555-0188",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20230107_00136319^00138455_JDFN_APEX_20260514.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "007_avery_aldridge_resume.pdf",
+    "candidate_name": "Avery Aldridge",
+    "email": "avery.aldridge@example.invalid",
+    "phone": "555-0160",
+    "coverage": "strong",
+    "skills_matched": "26",
+    "source_jd": "20231026_00117554_JDFN_APSA_20231027.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "008_zaid_whitfield_resume.pdf",
+    "candidate_name": "Zaid Whitfield",
+    "email": "zaid.whitfield@example.invalid",
+    "phone": "555-0126",
+    "coverage": "strong",
+    "skills_matched": "15",
+    "source_jd": "20240927_00136319^00138455_JDFN_APEX_20260514.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "009_zaid_whitfield_resume.pdf",
+    "candidate_name": "Zaid Whitfield",
+    "email": "zaid.whitfield@example.invalid",
+    "phone": "555-0162",
+    "coverage": "strong",
+    "skills_matched": "16",
+    "source_jd": "20241222_00134605^00137227_JDFN_APSA_20250612.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "010_quinn_thornbury_resume.pdf",
+    "candidate_name": "Quinn Thornbury",
+    "email": "quinn.thornbury@example.invalid",
+    "phone": "555-0144",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20250204_00134605^00137227_JDFN_APSA_20250612.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "011_kai_novak_resume.pdf",
+    "candidate_name": "Kai Novak",
+    "email": "kai.novak@example.invalid",
+    "phone": "555-0171",
+    "coverage": "strong",
+    "skills_matched": "15",
+    "source_jd": "20250302_00136735^00138592_JDFN_APSA_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "012_emerson_rahimi_resume.pdf",
+    "candidate_name": "Emerson Rahimi",
+    "email": "emerson.rahimi@example.invalid",
+    "phone": "555-0157",
+    "coverage": "strong",
+    "skills_matched": "10",
+    "source_jd": "20250502_00126035^00138583_JDFN_APSA_20260624.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "013_devon_vasquez_resume.pdf",
+    "candidate_name": "Devon Vasquez",
+    "email": "devon.vasquez@example.invalid",
+    "phone": "555-0151",
+    "coverage": "strong",
+    "skills_matched": "16",
+    "source_jd": "20250612_00134605^00137227_JDFN_APSA_20250612.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "014_sawyer_achebe_resume.pdf",
+    "candidate_name": "Sawyer Achebe",
+    "email": "sawyer.achebe@example.invalid",
+    "phone": "555-0180",
+    "coverage": "strong",
+    "skills_matched": "16",
+    "source_jd": "20250814_Various_JDFN_APSA_20250814.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "015_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0105",
+    "coverage": "strong",
+    "skills_matched": "26",
+    "source_jd": "20250825_00137444^00134219_JDFN_APSA_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "016_devon_vasquez_resume.pdf",
+    "candidate_name": "Devon Vasquez",
+    "email": "devon.vasquez@example.invalid",
+    "phone": "555-0155",
+    "coverage": "strong",
+    "skills_matched": "17",
+    "source_jd": "20250826_00137440^00138479_JDFN_APSA_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "017_imani_marchetti_resume.pdf",
+    "candidate_name": "Imani Marchetti",
+    "email": "imani.marchetti@example.invalid",
+    "phone": "555-0135",
+    "coverage": "partial",
+    "skills_matched": "16",
+    "source_jd": "20250826_00137444^00134219_JDFN_APSA_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "018_emerson_rahimi_resume.pdf",
+    "candidate_name": "Emerson Rahimi",
+    "email": "emerson.rahimi@example.invalid",
+    "phone": "555-0161",
+    "coverage": "strong",
+    "skills_matched": "20",
+    "source_jd": "20251006_00135469_JDFN_APSA_20260611.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "019_tatum_sandoval_resume.pdf",
+    "candidate_name": "Tatum Sandoval",
+    "email": "tatum.sandoval@example.invalid",
+    "phone": "555-0178",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20251117_Various_JDFN_APSA_20251117.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "020_arden_osei_resume.pdf",
+    "candidate_name": "Arden Osei",
+    "email": "arden.osei@example.invalid",
+    "phone": "555-0122",
+    "coverage": "weak",
+    "skills_matched": "5",
+    "source_jd": "20260117_00136735^00138592_JDFN_APSA_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "021_arden_osei_resume.pdf",
+    "candidate_name": "Arden Osei",
+    "email": "arden.osei@example.invalid",
+    "phone": "555-0142",
+    "coverage": "weak",
+    "skills_matched": "4",
+    "source_jd": "20260208_00123583^00130721_JDFN_APSA_20260217.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "022_lennox_lindgren_resume.pdf",
+    "candidate_name": "Lennox Lindgren",
+    "email": "lennox.lindgren@example.invalid",
+    "phone": "555-0165",
+    "coverage": "partial",
+    "skills_matched": "4",
+    "source_jd": "20260208_00124335_JDFN_CUPE_20260217.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "023_blair_petrov_resume.pdf",
+    "candidate_name": "Blair Petrov",
+    "email": "blair.petrov@example.invalid",
+    "phone": "555-0167",
+    "coverage": "weak",
+    "skills_matched": "6",
+    "source_jd": "20260220_00138128_JDFN_APSA_20260220.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "024_sawyer_achebe_resume.pdf",
+    "candidate_name": "Sawyer Achebe",
+    "email": "sawyer.achebe@example.invalid",
+    "phone": "555-0148",
+    "coverage": "strong",
+    "skills_matched": "15",
+    "source_jd": "20260305_00030996_JDFN_CUPE_20260514.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "025_avery_aldridge_resume.pdf",
+    "candidate_name": "Avery Aldridge",
+    "email": "avery.aldridge@example.invalid",
+    "phone": "555-0184",
+    "coverage": "strong",
+    "skills_matched": "23",
+    "source_jd": "20260317_00133213_JDFN_APEX_20260623.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "026_imani_marchetti_resume.pdf",
+    "candidate_name": "Imani Marchetti",
+    "email": "imani.marchetti@example.invalid",
+    "phone": "555-0191",
+    "coverage": "partial",
+    "skills_matched": "12",
+    "source_jd": "20260325_00120870_JDFN_APSA_20260609.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "027_zaid_whitfield_resume.pdf",
+    "candidate_name": "Zaid Whitfield",
+    "email": "zaid.whitfield@example.invalid",
+    "phone": "555-0198",
+    "coverage": "strong",
+    "skills_matched": "29",
+    "source_jd": "20260327_00136510_JDFN_APSA_20260604.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "028_ellis_kaur_resume.pdf",
+    "candidate_name": "Ellis Kaur",
+    "email": "ellis.kaur@example.invalid",
+    "phone": "555-0150",
+    "coverage": "strong",
+    "skills_matched": "21",
+    "source_jd": "20260328_00138215_00138540_JDFN_APSA_20260609.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "029_rowan_ferreira_resume.pdf",
+    "candidate_name": "Rowan Ferreira",
+    "email": "rowan.ferreira@example.invalid",
+    "phone": "555-0197",
+    "coverage": "partial",
+    "skills_matched": "12",
+    "source_jd": "20260409_00138272_JDFN_APSA_20260602.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "030_lennox_lindgren_resume.pdf",
+    "candidate_name": "Lennox Lindgren",
+    "email": "lennox.lindgren@example.invalid",
+    "phone": "555-0121",
+    "coverage": "partial",
+    "skills_matched": "8",
+    "source_jd": "20260415_00138555_JDFN_APSA_20260415.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "031_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0169",
+    "coverage": "strong",
+    "skills_matched": "28",
+    "source_jd": "20260420_00111328_JDFN_APSA_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "032_yara_baptiste_resume.pdf",
+    "candidate_name": "Yara Baptiste",
+    "email": "yara.baptiste@example.invalid",
+    "phone": "555-0182",
+    "coverage": "partial",
+    "skills_matched": "15",
+    "source_jd": "20260508_00138315_JDFN_APEX_20260504.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "033_emerson_rahimi_resume.pdf",
+    "candidate_name": "Emerson Rahimi",
+    "email": "emerson.rahimi@example.invalid",
+    "phone": "555-0153",
+    "coverage": "strong",
+    "skills_matched": "11",
+    "source_jd": "20260511_1430_JDFN_CUPE_20260609.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "034_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0157",
+    "coverage": "strong",
+    "skills_matched": "16",
+    "source_jd": "20260513_00137300_JDFN_APSA_20260611.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "035_kai_novak_resume.pdf",
+    "candidate_name": "Kai Novak",
+    "email": "kai.novak@example.invalid",
+    "phone": "555-0119",
+    "coverage": "strong",
+    "skills_matched": "12",
+    "source_jd": "20260513_00137776_JDFN_APSA_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "036_yara_baptiste_resume.pdf",
+    "candidate_name": "Yara Baptiste",
+    "email": "yara.baptiste@example.invalid",
+    "phone": "555-0138",
+    "coverage": "partial",
+    "skills_matched": "9",
+    "source_jd": "20260513_00138454_JDFN_APSA_20260513.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "037_yara_baptiste_resume.pdf",
+    "candidate_name": "Yara Baptiste",
+    "email": "yara.baptiste@example.invalid",
+    "phone": "555-0190",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20260514_00136319^00138455_JDFN_APEX_20260514.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "038_kai_novak_resume.pdf",
+    "candidate_name": "Kai Novak",
+    "email": "kai.novak@example.invalid",
+    "phone": "555-0131",
+    "coverage": "strong",
+    "skills_matched": "15",
+    "source_jd": "20260515_00000694^00138457_JDFN_APSA_20260515.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "039_zaid_whitfield_resume.pdf",
+    "candidate_name": "Zaid Whitfield",
+    "email": "zaid.whitfield@example.invalid",
+    "phone": "555-0114",
+    "coverage": "strong",
+    "skills_matched": "12",
+    "source_jd": "20260515_00138458_JDFN_APSA_20260515.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "040_reese_delacroix_resume.pdf",
+    "candidate_name": "Reese Delacroix",
+    "email": "reese.delacroix@example.invalid",
+    "phone": "555-0112",
+    "coverage": "weak",
+    "skills_matched": "5",
+    "source_jd": "20260515_00138459_JDFN_APSA_20260515.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "041_kai_novak_resume.pdf",
+    "candidate_name": "Kai Novak",
+    "email": "kai.novak@example.invalid",
+    "phone": "555-0139",
+    "coverage": "strong",
+    "skills_matched": "12",
+    "source_jd": "20260516_00138458,_00138512_JDFN_APSA_20260529.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "042_rowan_ferreira_resume.pdf",
+    "candidate_name": "Rowan Ferreira",
+    "email": "rowan.ferreira@example.invalid",
+    "phone": "555-0145",
+    "coverage": "partial",
+    "skills_matched": "9",
+    "source_jd": "20260518_00138385_JDFN_APSA_20260512.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "043_kai_novak_resume.pdf",
+    "candidate_name": "Kai Novak",
+    "email": "kai.novak@example.invalid",
+    "phone": "555-0195",
+    "coverage": "strong",
+    "skills_matched": "10",
+    "source_jd": "20260521_00123583^00130721_JDFN_APSA_20260217.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "044_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0113",
+    "coverage": "strong",
+    "skills_matched": "17",
+    "source_jd": "20260521_00137440^00138479_JDFN_APSA_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "045_marlowe_ivanova_resume.pdf",
+    "candidate_name": "Marlowe Ivanova",
+    "email": "marlowe.ivanova@example.invalid",
+    "phone": "555-0105",
+    "coverage": "weak",
+    "skills_matched": "9",
+    "source_jd": "20260521_00137444^00134219_JDFN_APSA_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "046_imani_marchetti_resume.pdf",
+    "candidate_name": "Imani Marchetti",
+    "email": "imani.marchetti@example.invalid",
+    "phone": "555-0107",
+    "coverage": "partial",
+    "skills_matched": "17",
+    "source_jd": "20260521_00138317_JDFN_APSA_20260519.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "047_anouk_okonkwo_resume.pdf",
+    "candidate_name": "Anouk Okonkwo",
+    "email": "anouk.okonkwo@example.invalid",
+    "phone": "555-0128",
+    "coverage": "weak",
+    "skills_matched": "6",
+    "source_jd": "20260521_00138480_JDFN_APEX_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "048_sawyer_achebe_resume.pdf",
+    "candidate_name": "Sawyer Achebe",
+    "email": "sawyer.achebe@example.invalid",
+    "phone": "555-0128",
+    "coverage": "strong",
+    "skills_matched": "21",
+    "source_jd": "20260522_00136166_JDFN_APSA_20260522.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "049_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0189",
+    "coverage": "strong",
+    "skills_matched": "17",
+    "source_jd": "20260522_00138280_JDFN_CUPE_20260521.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "050_noor_farrow_resume.pdf",
+    "candidate_name": "Noor Farrow",
+    "email": "noor.farrow@example.invalid",
+    "phone": "555-0116",
+    "coverage": "partial",
+    "skills_matched": "12",
+    "source_jd": "20260525_00138494_JDFN_APSA_20260525.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "051_quinn_thornbury_resume.pdf",
+    "candidate_name": "Quinn Thornbury",
+    "email": "quinn.thornbury@example.invalid",
+    "phone": "555-0148",
+    "coverage": "partial",
+    "skills_matched": "8",
+    "source_jd": "20260525_00138496_JDFN_APSA_20260525.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "052_arden_osei_resume.pdf",
+    "candidate_name": "Arden Osei",
+    "email": "arden.osei@example.invalid",
+    "phone": "555-0182",
+    "coverage": "weak",
+    "skills_matched": "6",
+    "source_jd": "20260527_00121694^00138506_JDFN_APSA_20260527.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "053_quinn_thornbury_resume.pdf",
+    "candidate_name": "Quinn Thornbury",
+    "email": "quinn.thornbury@example.invalid",
+    "phone": "555-0180",
+    "coverage": "partial",
+    "skills_matched": "16",
+    "source_jd": "20260528_00131047_JDFN_APSA_20260622.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "054_avery_aldridge_resume.pdf",
+    "candidate_name": "Avery Aldridge",
+    "email": "avery.aldridge@example.invalid",
+    "phone": "555-0136",
+    "coverage": "strong",
+    "skills_matched": "15",
+    "source_jd": "20260528_00138405_JDFN_APEX_20260519.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "055_yara_baptiste_resume.pdf",
+    "candidate_name": "Yara Baptiste",
+    "email": "yara.baptiste@example.invalid",
+    "phone": "555-0166",
+    "coverage": "partial",
+    "skills_matched": "16",
+    "source_jd": "20260528_00138456_JDFN_APSA_20260514.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "056_avery_aldridge_resume.pdf",
+    "candidate_name": "Avery Aldridge",
+    "email": "avery.aldridge@example.invalid",
+    "phone": "555-0140",
+    "coverage": "strong",
+    "skills_matched": "11",
+    "source_jd": "20260529_00138406_JDFN_APEX_20260519.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "057_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0169",
+    "coverage": "strong",
+    "skills_matched": "12",
+    "source_jd": "20260529_00138458,_00138512_JDFN_APSA_20260529.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "058_emerson_rahimi_resume.pdf",
+    "candidate_name": "Emerson Rahimi",
+    "email": "emerson.rahimi@example.invalid",
+    "phone": "555-0121",
+    "coverage": "strong",
+    "skills_matched": "19",
+    "source_jd": "20260609_00136913_JDFN_APSA_20260609.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "059_rowan_ferreira_resume.pdf",
+    "candidate_name": "Rowan Ferreira",
+    "email": "rowan.ferreira@example.invalid",
+    "phone": "555-0185",
+    "coverage": "partial",
+    "skills_matched": "14",
+    "source_jd": "20260609_00138215_00138540_JDFN_APSA_20260609.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "060_sawyer_achebe_resume.pdf",
+    "candidate_name": "Sawyer Achebe",
+    "email": "sawyer.achebe@example.invalid",
+    "phone": "555-0156",
+    "coverage": "strong",
+    "skills_matched": "26",
+    "source_jd": "20260610_00133022_JDFN_APEX_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "061_yara_baptiste_resume.pdf",
+    "candidate_name": "Yara Baptiste",
+    "email": "yara.baptiste@example.invalid",
+    "phone": "555-0178",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20260611_00138524,_00138523_JDFN_APSA_20260611.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "062_devon_vasquez_resume.pdf",
+    "candidate_name": "Devon Vasquez",
+    "email": "devon.vasquez@example.invalid",
+    "phone": "555-0175",
+    "coverage": "strong",
+    "skills_matched": "2",
+    "source_jd": "20260611_00138584_JDFN_CUPE_20260626.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "063_sawyer_achebe_resume.pdf",
+    "candidate_name": "Sawyer Achebe",
+    "email": "sawyer.achebe@example.invalid",
+    "phone": "555-0124",
+    "coverage": "strong",
+    "skills_matched": "34",
+    "source_jd": "20260612_00138554_JDFN_APSA_20260415.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "064_quinn_thornbury_resume.pdf",
+    "candidate_name": "Quinn Thornbury",
+    "email": "quinn.thornbury@example.invalid",
+    "phone": "555-0124",
+    "coverage": "partial",
+    "skills_matched": "5",
+    "source_jd": "20260612_00138556_JDFN_CUPE_20260415.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "065_rowan_ferreira_resume.pdf",
+    "candidate_name": "Rowan Ferreira",
+    "email": "rowan.ferreira@example.invalid",
+    "phone": "555-0133",
+    "coverage": "partial",
+    "skills_matched": "6",
+    "source_jd": "20260612_00138559_APSA_JDFN_20260612.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "066_mattias_lindqvist_resume.pdf",
+    "candidate_name": "Mattias Lindqvist",
+    "email": "mattias.lindqvist@example.invalid",
+    "phone": "555-0189",
+    "coverage": "strong",
+    "skills_matched": "30",
+    "source_jd": "20260616_00134720_APEX_JDFN_20260616.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "067_rowan_ferreira_resume.pdf",
+    "candidate_name": "Rowan Ferreira",
+    "email": "rowan.ferreira@example.invalid",
+    "phone": "555-0197",
+    "coverage": "partial",
+    "skills_matched": "15",
+    "source_jd": "20260616_00138564_JDFN_APEX_20260616.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "068_blair_petrov_resume.pdf",
+    "candidate_name": "Blair Petrov",
+    "email": "blair.petrov@example.invalid",
+    "phone": "555-0175",
+    "coverage": "weak",
+    "skills_matched": "9",
+    "source_jd": "20260616_00138565_APEX_JDFN_20260616.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "069_sawyer_achebe_resume.pdf",
+    "candidate_name": "Sawyer Achebe",
+    "email": "sawyer.achebe@example.invalid",
+    "phone": "555-0192",
+    "coverage": "strong",
+    "skills_matched": "10",
+    "source_jd": "20260624_00126035^00138583_JDFN_APSA_20260624.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "070_devon_vasquez_resume.pdf",
+    "candidate_name": "Devon Vasquez",
+    "email": "devon.vasquez@example.invalid",
+    "phone": "555-0195",
+    "coverage": "strong",
+    "skills_matched": "12",
+    "source_jd": "20260625_00123563^00138590_APSA_JDFN_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "071_lennox_lindgren_resume.pdf",
+    "candidate_name": "Lennox Lindgren",
+    "email": "lennox.lindgren@example.invalid",
+    "phone": "555-0153",
+    "coverage": "partial",
+    "skills_matched": "10",
+    "source_jd": "20260625_00136735^00138592_JDFN_APSA_20260625.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "072_sasha_balogun_resume.pdf",
+    "candidate_name": "Sasha Balogun",
+    "email": "sasha.balogun@example.invalid",
+    "phone": "555-0146",
+    "coverage": "weak",
+    "skills_matched": "8",
+    "source_jd": "20260626_00101838_JDFN_CUPE_20260527.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "073_arden_osei_resume.pdf",
+    "candidate_name": "Arden Osei",
+    "email": "arden.osei@example.invalid",
+    "phone": "555-0190",
+    "coverage": "weak",
+    "skills_matched": "1",
+    "source_jd": "20260626_00138568_JDFN_CUPE_20260624.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "074_emerson_rahimi_resume.pdf",
+    "candidate_name": "Emerson Rahimi",
+    "email": "emerson.rahimi@example.invalid",
+    "phone": "555-0185",
+    "coverage": "strong",
+    "skills_matched": "16",
+    "source_jd": "20260629_00136847_JDFN_APSA_20260624.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "075_arden_osei_resume.pdf",
+    "candidate_name": "Arden Osei",
+    "email": "arden.osei@example.invalid",
+    "phone": "555-0162",
+    "coverage": "weak",
+    "skills_matched": "5",
+    "source_jd": "20260702_00138231_JDFN_APSA_20260615.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "076_anouk_okonkwo_resume.pdf",
+    "candidate_name": "Anouk Okonkwo",
+    "email": "anouk.okonkwo@example.invalid",
+    "phone": "555-0164",
+    "coverage": "weak",
+    "skills_matched": "8",
+    "source_jd": "20260702_00138543_JDFN_APSA_20260626.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "077_anouk_okonkwo_resume.pdf",
+    "candidate_name": "Anouk Okonkwo",
+    "email": "anouk.okonkwo@example.invalid",
+    "phone": "555-0180",
+    "coverage": "weak",
+    "skills_matched": "6",
+    "source_jd": "20260702_00138566_JDFN_APSA_20260626.docx",
+    "synthetic": "true"
+  },
+  {
+    "resume_file": "078_marlowe_ivanova_resume.pdf",
+    "candidate_name": "Marlowe Ivanova",
+    "email": "marlowe.ivanova@example.invalid",
+    "phone": "555-0173",
+    "coverage": "weak",
+    "skills_matched": "7",
+    "source_jd": "20260731_00123587_JDFN_APSA_20260619.docx",
+    "synthetic": "true"
+  }
+]

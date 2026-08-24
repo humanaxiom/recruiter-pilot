@@ -56,6 +56,16 @@ if [[ ! -d "$REPO_ROOT/fixtures" ]]; then
   echo "🔴 model-check: no ./fixtures directory — the harness measures REAL" >&2
   echo "   documents on purpose; a synthetic prompt certified a broken" >&2
   echo "   configuration as healthy during the 2026-08-21 incident." >&2
+  echo "" >&2
+  echo "   ./fixtures-synthetic is NOT a substitute here, deliberately. It is" >&2
+  echo "   good enough for smoke.sh (which tests the browser→Flask→API seam)" >&2
+  echo "   and disqualifying for this harness: a hand-written prompt of" >&2
+  echo "   comparable length returned valid JSON on both transports at both" >&2
+  echo "   budgets while the real extracted résumé failed 3 times out of 3." >&2
+  echo "   Measuring a token budget against tidy generated text produces a" >&2
+  echo "   number that is accurate and useless." >&2
+  echo "" >&2
+  echo "   Provision the real corpus out-of-band, then re-run." >&2
   exit 1
 fi
 

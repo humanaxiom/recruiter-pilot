@@ -43,6 +43,31 @@ else
   MOUNT_SRC="$REPO_ROOT"
 fi
 
+# Prefer the REAL corpus when it has been provisioned, fall back to the
+# committed synthetic one otherwise. This is why a bare clone can run smoke at
+# all — `fixtures/` is gitignored (real candidate documents live there and are
+# never committed), so before `fixtures-synthetic/` existed a fresh checkout had
+# no résumé PDFs and this suite could only fail.
+#
+# Deliberately NOT mirrored in model-check.sh: that harness measures the MODEL,
+# and its own docstring records why synthetic inputs are disqualifying there — a
+# hand-written prompt of comparable length returned valid JSON while the real
+# résumé failed three times out of three. Smoke tests the browser→Flask→API
+# seam, where a well-formed synthetic résumé exercises the same path.
+if [[ -d "$REPO_ROOT/fixtures/resumes" ]]; then
+  SMOKE_FIXTURES_DEFAULT="/repo/fixtures"
+  echo "  fixtures: ./fixtures (real corpus)"
+elif [[ -d "$REPO_ROOT/fixtures-synthetic/resumes" ]]; then
+  SMOKE_FIXTURES_DEFAULT="/repo/fixtures-synthetic"
+  echo "  fixtures: ./fixtures-synthetic (generated — no real candidate data)"
+else
+  echo "🔴 smoke: no résumé corpus found." >&2
+  echo "   Expected ./fixtures/resumes (real, provisioned out-of-band) or" >&2
+  echo "   ./fixtures-synthetic/resumes (committed). Generate the latter with:" >&2
+  echo "     ./scripts/gen-fixtures.sh" >&2
+  exit 1
+fi
+
 echo "▶ smoke: driving the live product through the Flask BFF"
 echo "  (this parses real résumés on the local model — allow several minutes)"
 echo
@@ -54,6 +79,6 @@ docker run --rm \
   -e PYTHONDONTWRITEBYTECODE=1 \
   -e PYTHONPATH=/repo/core \
   -e SMOKE_FRONTEND="${SMOKE_FRONTEND:-http://frontend:5000}" \
-  -e SMOKE_FIXTURES="${SMOKE_FIXTURES:-/repo/fixtures}" \
+  -e SMOKE_FIXTURES="${SMOKE_FIXTURES:-$SMOKE_FIXTURES_DEFAULT}" \
   "$IMAGE" \
   python -m pytest tests/smoke -q -p no:cacheprovider "$@"
