@@ -4,6 +4,18 @@
 
 Ported from the resume-ranking feature of an internal HRIS onto the offline-first agent harness. The review workflow, JD-Harmonizer, and cloud object storage were dropped; anonymization, the 4-stage ranking engine, shortlists, reverse-match, and exports were kept.
 
+> **This repository is a clean fork for pilot deployment** — fresh history, no
+> data, no fixtures. It is intended to hold **real applicant data** on a
+> dedicated machine; keep it private and read
+> [docs/adr/README.md](docs/adr/README.md)'s privacy set before touching anything
+> that displays candidate information.
+>
+> Architecture notes below annotate subsystems with the build phase that
+> introduced them (*Phase 2*, *Phase 4c*, …). Those are origin markers for
+> readers tracing a subsystem's ADRs; the phased build itself finished before
+> this fork and there is no phase work outstanding. Open work is in
+> [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ---
 
 ## What it does
@@ -182,7 +194,7 @@ Embeddings **exclude** name/email/phone by construction. 768-d `nomic-embed-text
 
 ---
 
-## API layer (Phase 6)
+## API layer
 
 `core/src/api/routes/{jobs,resumes,shortlist}.py` — the HTTP surface over the service layer Phases 3–5
 built, plus `core/src/api/deps.py`'s configurable auth switch. Phase 6 shipped eleven routes; post-v1
@@ -232,7 +244,7 @@ Full decisions + residuals: [ADR-012](docs/adr/012-api-routes-auth-upload-scope.
 
 ---
 
-## Evals (Phase 7)
+## Evals
 
 Phase 7 also shipped the last v1-scope evals item: no new fixtures (Phase 4a's corpus + 4c's live
 orchestrator wiring already satisfied "ranking-quality fixtures"), plus a **live end-to-end eval**
@@ -291,65 +303,35 @@ Full decisions + residuals: [ADR-014](docs/adr/014-workflow-ui.md).
 
 ---
 
-## Status & roadmap
+## Status
 
-**Phases 0–7 are ALL merged to `main`, CI green — the locked v1 extraction-plan scope is complete.** All four Phase-4 sub-phases (4a evals corpus, 4b graph projection, 4c matching engine, 4d shortlist/reverse-match write path), Phase 5 (persist + anonymize + export, PR #14), Phase 6 (API routes, PR #15), and Phase 7 (evals + minimal Flask viewer, PR #16, squash merge `1039e5c`, 2026-07-17) are all merged. There is no Phase 8.
+**Feature-complete, and never used by a recruiter.** That is the whole gap. The
+pipeline is proven end to end — a real JD extracted and parsed, real résumés
+uploaded through the UI and parsed with genuine LLM extraction, ranked into a
+shortlist, every UI assertion exercised — but by an automated smoke suite, not a
+person doing their job.
 
-**Eight post-v1 features have since shipped, all merged to `origin/main`, CI green** (named features, not numbered phases):
+| Capability | State |
+|---|---|
+| Upload → parse → rank → shortlist, with verified evidence quotes | Works |
+| JD ingest and requirement extraction (incl. bulk + CSV manifest) | Works |
+| Blind review by default; PII encrypted at rest; audited reveal | Works |
+| Résumé withdrawal, stale lifecycle, honest parse status | Works |
+| Reverse match — one résumé against many jobs | Works |
+| CSV / JSON export, including evidence | Works |
+| RBAC (admin · recruiter · hiring manager · auditor), CSRF, audit-log viewer | Built, never exercised by a signed-in human |
+| CAS authentication against real SFU CAS | Built; needs correct `.env` for the target host |
+| Ranking quality against real postings | **Unproven** — vocabulary covers ~55% of real qualification statements |
 
-| Feature | PR / merge | ADR | What it added |
-|---|---|---|---|
-| **Workflow UI** | #18 `3eba9cf` | [014](docs/adr/014-workflow-ui.md) | Phase 7's read-only viewer → a full create/upload/generate job → résumé → shortlist workflow (Flask + HTMX, blind-only) |
-| **FU-2 — evidence chunk expansion** | #19 `8d7ce0b` | [015](docs/adr/015-evidence-chunk-expansion.md) | Evidence `evidence_chunk_ids` expanded to redacted source text in the CSV export + card panel |
-| **FU-1 — audited reveal** | #20 `bc055f4` | [016](docs/adr/016-audited-reveal.md) | Blind stays default; identity exposed only via an **audited** `POST /resumes/{id}/reveal` (`reveal_audit` sink + a button on the résumé page and each shortlist card). Also: cover-letter **file** upload |
-| **FU-3 — bulk ingest** | #21 `e033d31` | [017](docs/adr/017-bulk-ingest-pairing.md) | Bulk résumé upload with per-résumé cover-letter pairing (filename convention or `manifest.json`), bulk JD upload (`POST /jobs/bulk` + CSV manifest + dedup), reverse-match UI, and the shortlist-poll fix |
-| **FU-4 — RBAC** | #23 `961caab` | [018](docs/adr/018-rbac-keyed-roles.md) | Four keyed roles (`admin`/`recruiter`/`hiring_manager`/`auditor`), per-route authorization, CSRF-per-résumé on reveal, and removal of two unaudited bulk-reveal paths. Closes FU-1's residuals R1/R2/R5 |
-| **FU-5 — CAS identity + attributable audit** | #29 `ae18687` | [019](docs/adr/019-cas-identity-attributable-audit.md) | The first real `users` table, SFU CAS authentication for humans, `role` as data rather than a hardcoded enum, and a generalized `audit_log` that also records `blind_review` flips. Makes a reveal name a person instead of `"api"` |
-| **Live-app bug fixes** | #30 `22db93f` | — | zip-upload empty-file 422, résumé-upload 404, slow-job progress honesty, duplicate-run dedupe |
-| **FU-6 — Per-job assignment + row-level scoping** | #31 `c2f6a57` | [020](docs/adr/020-per-job-assignment-scoping.md) | A `job_assignees` table so hiring managers see only their assigned jobs; scoping enforced off the CAS **session** role in SQL, unassigned reads 404 not 403; auditor read-logging |
+**Known and disclosed**, so an operator is not surprised: retention is recorded
+but not automatically enforced; the candidate email hash is unsalted; `audit_log`
+immutability is by convention rather than a database constraint; `/health` is
+shallow; and the evidence "cliff" is disclosed rather than removed — below the
+threshold the UI says *not assessed* instead of rendering a fabricated 0%.
 
-**Five further features landed on `origin/main` on 2026-07-29** (the four below were previously local-only and reached `origin` via the reconciliation push `c2f6a57 → 5cab283`; FU-8 was then built and merged on top). `origin/main` == `sfu-aria/main` == `6903691`, both repos public, CI green in-cloud. Ordered oldest-first:
-
-| Feature | commit / PR | ADR | What it added |
-|---|---|---|---|
-| **Configurable shortlist size** | `2e2da05` | [024](docs/adr/024-configurable-shortlist-size.md) | Per-job `shortlist_top_percent` (1–100%, default 100 = keep-all) caps the persisted forward shortlist to the top P% of the ranked pool |
-| **`/my/jobs` hiring-manager viewer default** | `f3b2998` | [020](docs/adr/020-per-job-assignment-scoping.md) | ADR-020 §7 "viewer half" — a hiring_manager lands on the assignment-scoped `/my/jobs` view by default; landed after the local FU-6 merge, so it was not part of PR #31 |
-| **CAS live integration** | `adb55fd`+`d54a6be` | [019](docs/adr/019-cas-identity-attributable-audit.md) | Turned the FU-5 CAS flow on against real SFU CAS via `compose.cas.yml` (now tracked + port-parameterized, on by default in the quickstart): split-origin (frontend/API) post-login redirect fix + a header auth widget (user · role · Logout/Login) |
-| **User admin — granular roles** | `45eba6d` (slices 1–8) | [025](docs/adr/025-user-admin-roles.md) | No-role-by-default first login (fail-closed, reverses ADR-019 §10a), the `require_role_assigned` gate, an admin-session-gated `GET /users` + `PATCH /users/{id}/role` (atomic `role_changed` audit, last-admin lockout), and a Flask `/admin/users` role-assignment page |
-| **FU-8 — Résumé withdrawal** | PR #37, squash `0162302` | [026](docs/adr/026-resume-withdrawal-lifecycle.md) | A candidate-withdrawal action (audited, `POST /resumes/{id}/withdraw` + `/reinstate`) that un-projects the résumé from Neo4j so it drops out of new shortlists/reverse-matches, distinct from a parse `failed`; reinstate replays the last parse rather than re-embedding; and a per-job résumé-status breakdown (`GET /jobs/{id}/resume-status`). All five gates green + CI green in-cloud on merge. The §4 consent-revocation purge path stays deferred |
-
-**FU-7 (scoped by ADR-021, 2026-07-20) is built in three slices; one decision remains open:**
-
-| Slice | commit / PR | ADR | What it added |
-|---|---|---|---|
-| **§3 — honest résumé parse status** | PR #44, `69e6ac0` | [027](docs/adr/027-honest-resume-parse-status-fu7.md) | `uploaded → parsing → failed` state machine actually reachable in code; a timed-out parse now lands at `failed` with a reason instead of hanging at `uploaded` forever |
-| **§2 + §6 — fail-closed ranking + empty-content detection** | PR #52, `79d69ac` | [029](docs/adr/029-fail-closed-ranking-fu7.md) | Fails closed on **both** an LLM outage and invalid/empty output during forward-shortlist ranking (widened by human decision beyond §2's literal Mode-B-only scope); a dedicated `jobs.shortlist_state` column trio + bounded arq retry replace the prior silent zero-score; empty-`content` is now detected and diagnosed on both LLM client code paths |
-| **§4 — degraded-parse visibility** | branch `feat/fu7-degraded-parse-visibility` | [030](docs/adr/030-fu7-degraded-parse-visibility.md) | A résumé whose skills extraction fell back to the keyword scan is marked `degraded` (rides the existing `resumes.parsed` jsonb, no DDL), badged in the list/detail UI and a per-job status-breakdown sub-count, and excluded from ranking (its graph-projection outbox event is skipped, mirroring the ADR-026 withdrawn-during-parse skip) until re-parsed via re-upload |
-
-**Still open (ADR-021 decision 1, not yet scheduled):** an ordered multi-provider chain with per-provider circuit breakers and failover on availability errors.
-
-**"Why this rank?" defense pack (`docs/ROADMAP.md` card #1), slice 1** — branch `feat/why-this-rank-defense-pack`, PR pending, [ADR-031](docs/adr/031-why-this-rank-defense-pack.md). A deterministic score-composition + verified-evidence panel on the shortlist entry detail page (`GET /shortlist/{id}`, both API and Flask UI) — no LLM, no DDL, no scoring-math change; every number was already persisted in `score_breakdown`/`evidence`/`pipeline_meta`. Weights shown are the ones recorded in `pipeline_meta` at generation time, never current settings — a missing or malformed stamp renders "weights unavailable" rather than a substituted default, and an unrecorded sub-score renders "not recorded" rather than an affirmative "0%". Forward-shortlist only (reverse-match's `score_final` scale isn't comparable, ADR-009). Slice 2 (optional grounded-LLM narrative + decision-rationale export) is deferred.
-
-A plain-language explainer of the scoring model, written for HR and compliance review — including the seventeen policy decisions currently encoded as configuration defaults — is at [docs/process/ranking-metrics-explainer.html](docs/process/ranking-metrics-explainer.html).
-
-What is live on `main` today: `docker compose up` brings up the stack, Postgres + Neo4j schema come up idempotently on boot, the ingest/parse pipeline, the Neo4j skill graph, the 4-stage matching engine, the shortlist/reverse-match write path, the persist/anonymize/export read layer, the job/résumé/shortlist/reverse-match/reveal/bulk HTTP routes, and **the Flask Workflow UI** — a full job → résumé → shortlist recruiter workflow with audited reveal and bulk ingest, blind-only by construction — are all wired and merged. A live end-to-end eval against a real Ollama-backed stack has been run and passed (see [ADR-013](docs/adr/013-phase7-evals-viewer.md) §5); this is a manual/local harness, not part of CI. On top of that, FU-6's per-job assignment scoping is live too (merged to `origin/main`), and the four local-`main`-only features in the table above are live on top of it: SFU CAS login (enabled via `compose.cas.yml`), the `/my/jobs` hiring-manager default view, configurable shortlist size, and the `/admin/users` role-administration page — with new users landing role-less (no access) until an admin grants a role.
-
-| Phase | Deliverable | State |
-|---|---|---|
-| **0 · Seed & infra** | Compose, settings (768-d contract), asyncpg startup DDL, Neo4j bootstrap | **done** |
-| **1 · Storage** | Filesystem `BlobStore` (put/get/delete/exists/list_keys, path-safe, `0o600`/`0o700`) + app/worker wiring | **done** |
-| **2 · Schemas** | `jobs`, `resumes`, `matching` pydantic schemas (review workflow cut; `MatchWeights` ranking contract) | **done** |
-| **3 · Ingest + parse** | extract/chunk, LLM client+cache, PII encryption on parse, `parse_job`/`parse_resume` | **done, merged** |
-| **4a · Evals corpus** | Labelled resumes-vs-JD fixture corpus + `thresholds.toml` | **done, merged** |
-| **4b · Graph projection** | Outbox drainer + Neo4j skill graph (`skill_normalize`, ADR-008 PII-safe-by-construction) | **done, merged** |
-| **4c · Matching engine** | `stages`/`orchestrator` (4-stage hybrid), reverse-match, `weights_from_settings` | **done, merged** |
-| **4d · Shortlist + reverse-match write path** | `shortlist_job`/`reverse_match_job` arq tasks, `persist_shortlist`/`persist_reverse_match`, `matching_context_from_settings` | **done, merged** |
-| **5 · Persist + anonymize + export** | `list_for_job`/`get_one`/`export_rows`, `redaction.py`, csv/evidence-csv/json export with `reveal` | **done, merged (PR #14)** |
-| **6 · API** | job/resume/shortlist/reverse-match routes (above), configurable auth | **done, merged (PR #15)** |
-| **7 · Evals + viewer** | precision@k / evidence-verification fixtures (already satisfied by 4a/4c, no new fixtures this phase); read-only Flask viewer (blind-only); live end-to-end eval against a real stack | **done, merged (PR #16, squash `1039e5c`)** |
-| **Workflow UI** (post-v1 feature) | Flask + HTMX recruiter workflow (create job → upload → generate shortlist → review → export), blind-only carried forward, `PATCH /jobs/{id}` backend addition | **done** |
-
-Architecture decisions: [docs/adr/README.md](docs/adr/README.md). Open work: [docs/ROADMAP.md](docs/ROADMAP.md).
+Architecture decisions: [docs/adr/README.md](docs/adr/README.md).
+Open work: [docs/ROADMAP.md](docs/ROADMAP.md).
+Start here: [HANDOFF.md](HANDOFF.md).
 
 ---
 
@@ -404,12 +386,12 @@ Postgres tables + Neo4j vector indexes are created on API startup — no migrati
 recruiter-assistant/
 ├── core/
 │   ├── src/
-│   │   ├── api/         # FastAPI app (/health + lifespan; wires blob_store/arq); deps.py auth switch + routes/{jobs,resumes,shortlist}.py (Phase 6)
+│   │   ├── api/         # FastAPI app (/health + lifespan; wires blob_store/arq); deps.py auth switch + routes/{jobs,resumes,shortlist}.py
 │   │   ├── models/      # asyncpg pool + idempotent startup DDL
 │   │   ├── pipeline/    # extract/chunk, LLM client+cache, skills scan (Phase 3); matching/{stages,orchestrator} 4-stage ranking engine (Phase 4c/4d)
 │   │   ├── prompts/     # Jinja prompt templates: jd_extract/resume_core/resume_skills/cover_letter (Phase 3)
 │   │   ├── schemas/     # pydantic contract layer: jobs/resumes/matching (Phase 2)
-│   │   ├── services/    # pii, job/resume/outbox services (Phase 3); shortlist_service persist (Phase 4d) + list/get/export (Phase 5); redaction.py, errors.py (Phase 5); zip_upload.py, jd_import_service.py (Phase 6); job_service.update_job (Workflow UI)
+│   │   ├── services/    # pii, job/resume/outbox services; shortlist_service persist + list/get/export; redaction.py, errors.py; zip_upload.py, jd_import_service.py; job_service
 │   │   ├── storage/     # filesystem BlobStore (Phase 1)
 │   │   ├── worker/      # arq worker + Neo4j bootstrap; parse_job/parse_resume (Phase 3); shortlist_job/reverse_match_job (Phase 4d)
 │   │   └── settings.py  # single source of truth (pydantic-settings)

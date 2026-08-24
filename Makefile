@@ -15,11 +15,20 @@ logs:
 # Integration (real Postgres/Neo4j/Redis via testcontainers) is a separate
 # target because it needs a running Docker socket. CI runs `gates-all`.
 
-branch-name:      ## Enforce branch naming (agent|feat|fix|chore)/<slug>
+# `main` is exempt, matching `.github/workflows/ci.yml`'s branch-name job
+# verbatim (it does `if [[ "$$BRANCH" == "main" ]]; then exit 0; fi`). Without
+# this the local gate REJECTED a branch CI accepts, so `./scripts/verify.sh`
+# failed instantly on a freshly cloned repo sitting on its default branch —
+# exactly the local-vs-CI drift this Makefile exists to make impossible.
+branch-name:      ## Enforce branch naming (agent|feat|fix|chore)/<slug>; main exempt
 	@B=$$(git branch --show-current); \
-	  echo "$$B" | grep -Eq '^(agent|feat|fix|chore)/[a-zA-Z0-9._-]+$$' || \
-	  { echo "❌ branch '$$B' must match (agent|feat|fix|chore)/<slug>"; exit 1; }
-	@echo "✅ branch name OK"
+	  if [ "$$B" = "main" ]; then \
+	    echo "✅ branch name OK (main)"; \
+	  elif echo "$$B" | grep -Eq '^(agent|feat|fix|chore)/[a-zA-Z0-9._-]+$$'; then \
+	    echo "✅ branch name OK"; \
+	  else \
+	    echo "❌ branch '$$B' must match (agent|feat|fix|chore)/<slug>"; exit 1; \
+	  fi
 
 gates: branch-name  ## Offline gate suite (ruff·black·mypy·unit·coverage·branch)
 	cd core && ruff check src tests frontend
