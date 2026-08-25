@@ -17,3 +17,9 @@ htmlcov/
 # under PIPEDA/FIPPA. A `git add -A` swept them in on 2026-08-21 (349aadd) and
 # pushed 99MB to a public remote; see HANDOFF.md.
 fixtures/
+
+# Release staging — built by hand when cutting a corpus release. Holds the real
+# JDs and multi-MB tarballs; a `git add -A` would sweep 76 MB of documents into
+# a repo deliberately kept at ~2 MiB. Same class of accident as the fixtures
+# disclosure that led to this repository being forked clean.
+/.release/
